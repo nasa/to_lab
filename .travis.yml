@@ -40,7 +40,7 @@ script:
   - cp -r cfe/cmake/sample_defs sample_defs
   - make prep
   - make
-  - cd apps/ci_lab
+  - cd apps/to_lab
   - cppcheck --force .
   - cmake .
   - make
