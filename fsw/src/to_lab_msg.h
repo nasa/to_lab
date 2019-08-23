@@ -18,17 +18,12 @@
 **      See the License for the specific language governing permissions and
 **      limitations under the License.
 **
-** File:
+** File: to_lab_msg.h
 **
 ** Purpose: 
 **  Define TO Lab Messages and info
 **
 ** Notes:
-**
-** $Log: to_lab_msg.h  $
-** Revision 1.1 2008/04/30 13:45:27GMT-05:00 rjmcgraw 
-** Initial revision
-** Member added to project c:/MKSDATA/MKS-REPOSITORY/CFS-REPOSITORY/to_lab/fsw/src/project.pj
 **
 *************************************************************************/
 #ifndef _to_lab_msg_h_
