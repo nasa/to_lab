@@ -25,12 +25,6 @@
 **
 ** Notes:
 **
-** $Log: to_lab_sub_table.h  $
-** Revision 1.3 2014/07/16 14:44:45GMT-05:00 acudmore 
-** Member renamed from to_sub_table.h to to_lab_sub_table.h in project c:/MKSDATA/MKS-REPOSITORY/CFS-REPOSITORY/to_lab/fsw/platform_inc/project.pj.
-** Revision 1.2 2014/07/16 14:44:45ACT acudmore 
-** Updated TO_LAB subscription table header file ( comments, clean up )
-**
 *************************************************************************/
 
 /* 
@@ -53,7 +47,7 @@
 #include "lc_msgids.h"
 #endif
 
-static TO_subsciption_t  TO_SubTable[] =
+static TO_subscription_t  TO_SubTable[] =
 {
             /* CFS App Subscriptions */
             {TO_LAB_HK_TLM_MID,     {0,0},  4},
@@ -69,7 +63,7 @@ static TO_subsciption_t  TO_SubTable[] =
             {DS_HK_TLM_MID,         {0,0},  4},
             {LC_HK_TLM_MID,         {0,0},  4},
 #endif
-            /* cFE Core subsciptions */
+            /* cFE Core subscriptions */
             {CFE_ES_HK_TLM_MID,          {0,0},  4},
             {CFE_EVS_HK_TLM_MID,         {0,0},  4},
             {CFE_SB_HK_TLM_MID,          {0,0},  4},

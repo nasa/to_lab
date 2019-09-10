@@ -25,26 +25,6 @@
 **
 ** Notes:
 **
-** $Log: to_lab_app.c  $
-** Revision 1.8 2014/07/17 12:51:03GMT-05:00 acudmore 
-** renamed to_sub_table.h to to_lab_sub_table.h
-** Revision 1.7 2014/07/16 14:43:21GMT-05:00 acudmore 
-** Updated TO_LAB , relocating subscription table in header file
-** Revision 1.6 2010/09/20 13:28:05EDT wmoleski 
-** Modified the CI_LAB, SCH_LAB and TO_LAB applications to use unique message IDs and Pipe Names. The "_LAB"
-** was added to all definitions so that a mission can use these "Lab" apps as well as their own mission apps together.
-** Revision 1.5 2008/09/22 14:01:35EDT apcudmore 
-** Removed reference to FS Housekeeping packet, since FS thread does not exist.
-** Revision 1.4 2008/09/22 13:57:46EDT apcudmore 
-** Added RunLoop call to TO_LAB app.
-** Revision 1.3 2008/09/19 15:31:45EDT rjmcgraw 
-** DCR4337:1 Added #include version.h and display version after initialization is complete
-** Revision 1.2 2008/04/30 15:31:40EDT rjmcgraw 
-** DCR1718:2 Fixed compiler errors
-** Revision 1.1 2008/04/30 14:43:50EDT rjmcgraw 
-** Initial revision
-** Member added to project c:/MKSDATA/MKS-REPOSITORY/CFS-REPOSITORY/to_lab/fsw/src/project.pj
-**
 *************************************************************************/
 
 #include "to_lab_app.h"
@@ -212,7 +192,7 @@ void TO_init(void)
     }
 
     /* Subscriptions for TLM pipe*/
-    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subsciption_t))); i++)
+    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subscription_t))); i++)
     {
        if(TO_SubTable[i].Stream != TO_UNUSED )
           status = CFE_SB_SubscribeEx(TO_SubTable[i].Stream,
@@ -500,7 +480,7 @@ void TO_RemoveAllPkt(void)
     int32  status;
     int i;
 
-    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subsciption_t))); i++)
+    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subscription_t))); i++)
     {
        if (TO_SubTable[i].Stream != TO_UNUSED )
        {
