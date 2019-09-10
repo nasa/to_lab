@@ -100,7 +100,7 @@ typedef struct {
       CFE_SB_MsgId_t   Stream;
       CFE_SB_Qos_t     Flags;
       uint16           BufLimit;
- } TO_subsciption_t;
+ } TO_subscription_t;
 
 /******************************************************************************/
 
