@@ -25,26 +25,6 @@
 **
 ** Notes:
 **
-** $Log: to_lab_app.c  $
-** Revision 1.8 2014/07/17 12:51:03GMT-05:00 acudmore 
-** renamed to_sub_table.h to to_lab_sub_table.h
-** Revision 1.7 2014/07/16 14:43:21GMT-05:00 acudmore 
-** Updated TO_LAB , relocating subscription table in header file
-** Revision 1.6 2010/09/20 13:28:05EDT wmoleski 
-** Modified the CI_LAB, SCH_LAB and TO_LAB applications to use unique message IDs and Pipe Names. The "_LAB"
-** was added to all definitions so that a mission can use these "Lab" apps as well as their own mission apps together.
-** Revision 1.5 2008/09/22 14:01:35EDT apcudmore 
-** Removed reference to FS Housekeeping packet, since FS thread does not exist.
-** Revision 1.4 2008/09/22 13:57:46EDT apcudmore 
-** Added RunLoop call to TO_LAB app.
-** Revision 1.3 2008/09/19 15:31:45EDT rjmcgraw 
-** DCR4337:1 Added #include version.h and display version after initialization is complete
-** Revision 1.2 2008/04/30 15:31:40EDT rjmcgraw 
-** DCR1718:2 Fixed compiler errors
-** Revision 1.1 2008/04/30 14:43:50EDT rjmcgraw 
-** Initial revision
-** Member added to project c:/MKSDATA/MKS-REPOSITORY/CFS-REPOSITORY/to_lab/fsw/src/project.pj
-**
 *************************************************************************/
 
 #include "to_lab_app.h"
@@ -117,7 +97,7 @@ static void TO_StartSending( TO_OUTPUT_ENABLE_PKT_t * pCmd );
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_Lab_AppMain(void)
 {
-   uint32                  RunStatus = CFE_ES_APP_RUN;
+   uint32                  RunStatus = CFE_ES_RunStatus_APP_RUN;
    
    CFE_ES_PerfLogEntry(TO_MAIN_TASK_PERF_ID);
 
@@ -184,7 +164,7 @@ void TO_init(void)
     */
     CFE_EVS_Register(CFE_TO_EVS_Filters,
                      sizeof(CFE_TO_EVS_Filters)/sizeof(CFE_EVS_BinFilter_t),
-                     CFE_EVS_BINARY_FILTER);
+                     CFE_EVS_EventFilter_BINARY);
     /*
     ** Initialize housekeeping packet (clear user data area)...
     */
@@ -200,17 +180,19 @@ void TO_init(void)
        CFE_SB_Subscribe(TO_LAB_SEND_HK_MID, TO_Cmd_pipe);
     }
     else
-       CFE_EVS_SendEvent(TO_CRCMDPIPE_ERR_EID,CFE_EVS_ERROR, "L%d TO Can't create cmd pipe status %i",__LINE__,(int)status);
+       CFE_EVS_SendEvent(TO_CRCMDPIPE_ERR_EID,CFE_EVS_EventType_ERROR,
+             "L%d TO Can't create cmd pipe status %i",__LINE__,(int)status);
 
     /* Create TO TLM pipe */
     status = CFE_SB_CreatePipe(&TO_Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
     if (status != CFE_SUCCESS)
     {
-       CFE_EVS_SendEvent(TO_TLMPIPE_ERR_EID,CFE_EVS_ERROR, "L%d TO Can't create Tlm pipe status %i",__LINE__,(int)status);
+       CFE_EVS_SendEvent(TO_TLMPIPE_ERR_EID,CFE_EVS_EventType_ERROR,
+             "L%d TO Can't create Tlm pipe status %i",__LINE__,(int)status);
     }
 
     /* Subscriptions for TLM pipe*/
-    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subsciption_t))); i++)
+    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subscription_t))); i++)
     {
        if(TO_SubTable[i].Stream != TO_UNUSED )
           status = CFE_SB_SubscribeEx(TO_SubTable[i].Stream,
@@ -219,7 +201,8 @@ void TO_init(void)
                                       TO_SubTable[i].BufLimit);
 
        if (status != CFE_SUCCESS)
-           CFE_EVS_SendEvent(TO_SUBSCRIBE_ERR_EID,CFE_EVS_ERROR,"L%d TO Can't subscribe to stream 0x%x status %i", __LINE__,
+           CFE_EVS_SendEvent(TO_SUBSCRIBE_ERR_EID,CFE_EVS_EventType_ERROR,
+              "L%d TO Can't subscribe to stream 0x%x status %i", __LINE__,
                              TO_SubTable[i].Stream,(int)status);
     }
     
@@ -228,7 +211,7 @@ void TO_init(void)
     */
     OS_TaskInstallDeleteHandler(&TO_delete_callback);
 
-    CFE_EVS_SendEvent (TO_INIT_INF_EID, CFE_EVS_INFORMATION,
+    CFE_EVS_SendEvent (TO_INIT_INF_EID, CFE_EVS_EventType_INFORMATION,
                "TO Lab Initialized. Version %d.%d.%d.%d Awaiting enable command.",
                 TO_LAB_MAJOR_VERSION,
                 TO_LAB_MINOR_VERSION, 
@@ -248,7 +231,8 @@ void TO_StartSending( TO_OUTPUT_ENABLE_PKT_t * pCmd )
                                    sizeof (tlm_dest_IP),
                                    sizeof (pCmd->dest_IP));
     suppress_sendto = FALSE;
-    CFE_EVS_SendEvent(TO_TLMOUTENA_INF_EID,CFE_EVS_INFORMATION,"TO telemetry output enabled for IP %s", tlm_dest_IP);
+    CFE_EVS_SendEvent(TO_TLMOUTENA_INF_EID,CFE_EVS_EventType_INFORMATION,
+                      "TO telemetry output enabled for IP %s", tlm_dest_IP);
 
     if(downlink_on == FALSE) /* Then turn it on, otherwise we will just switch destination addresses*/
     {
@@ -286,7 +270,8 @@ void TO_process_commands(void)
                        break;
 
                   default:
-                       CFE_EVS_SendEvent(TO_MSGID_ERR_EID,CFE_EVS_ERROR, "L%d TO: Invalid Msg ID Rcvd 0x%x",__LINE__,MsgId);
+                       CFE_EVS_SendEvent(TO_MSGID_ERR_EID,CFE_EVS_EventType_ERROR,
+                            "L%d TO: Invalid Msg ID Rcvd 0x%x",__LINE__,MsgId);
                        break;
                }
                break;
@@ -311,7 +296,8 @@ void TO_exec_local_command(CFE_SB_MsgPtr_t cmd)
     switch (CommandCode)
     {
        case TO_NOP_CC:
-            CFE_EVS_SendEvent(TO_NOOP_INF_EID,CFE_EVS_INFORMATION, "No-op command");
+            CFE_EVS_SendEvent(TO_NOOP_INF_EID,CFE_EVS_EventType_INFORMATION,
+                              "No-op command");
             break;
 
        case TO_RESET_STATUS_CC:
@@ -341,7 +327,8 @@ void TO_exec_local_command(CFE_SB_MsgPtr_t cmd)
             break;
 
        default:
-            CFE_EVS_SendEvent(TO_FNCODE_ERR_EID,CFE_EVS_ERROR, "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x",__LINE__,
+            CFE_EVS_SendEvent(TO_FNCODE_ERR_EID,CFE_EVS_EventType_ERROR,
+                "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x",__LINE__,
                               CommandCode);
             valid = FALSE;
     }
@@ -430,7 +417,8 @@ void TO_output_status(void)
 void TO_openTLM(void)
 {
     if ( (TLMsockid = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
-       CFE_EVS_SendEvent(TO_TLMOUTSOCKET_ERR_EID,CFE_EVS_ERROR, "L%d, TO TLM socket errno: %d",__LINE__, errno);
+       CFE_EVS_SendEvent(TO_TLMOUTSOCKET_ERR_EID,CFE_EVS_EventType_ERROR,
+                         "L%d, TO TLM socket errno: %d",__LINE__, errno);
 
 /*---------------- Add static arp entries ----------------*/
 
@@ -451,10 +439,12 @@ void TO_AddPkt( TO_ADD_PKT_t * pCmd)
                                 pCmd->BufLimit);
 
     if(status != CFE_SUCCESS)
-       CFE_EVS_SendEvent(TO_ADDPKT_ERR_EID,CFE_EVS_ERROR, "L%d TO Can't subscribe 0x%x status %i",__LINE__,
+       CFE_EVS_SendEvent(TO_ADDPKT_ERR_EID,CFE_EVS_EventType_ERROR,
+                         "L%d TO Can't subscribe 0x%x status %i",__LINE__,
                          pCmd->Stream, (int)status);
     else
-       CFE_EVS_SendEvent(TO_ADDPKT_INF_EID,CFE_EVS_INFORMATION, "L%d TO AddPkt 0x%x, QoS %d.%d, limit %d",__LINE__,
+       CFE_EVS_SendEvent(TO_ADDPKT_INF_EID,CFE_EVS_EventType_INFORMATION,
+                         "L%d TO AddPkt 0x%x, QoS %d.%d, limit %d",__LINE__,
                          pCmd->Stream,
                          pCmd->Flags.Priority,
                          pCmd->Flags.Reliability,
@@ -472,10 +462,12 @@ void TO_RemovePkt(TO_REMOVE_PKT_t * pCmd)
 
     status = CFE_SB_Unsubscribe(pCmd->Stream, TO_Tlm_pipe);
     if(status != CFE_SUCCESS)
-       CFE_EVS_SendEvent(TO_REMOVEPKT_ERR_EID,CFE_EVS_ERROR,"L%d TO Can't Unsubscribe to Stream 0x%x on pipe %d, status %i",__LINE__,
+       CFE_EVS_SendEvent(TO_REMOVEPKT_ERR_EID,CFE_EVS_EventType_ERROR,
+           "L%d TO Can't Unsubscribe to Stream 0x%x on pipe %d, status %i",__LINE__,
                          pCmd->Stream, TO_Tlm_pipe, (int)status);
     else
-       CFE_EVS_SendEvent(TO_REMOVEPKT_INF_EID,CFE_EVS_INFORMATION,"L%d TO RemovePkt 0x%x",__LINE__, pCmd->Stream);
+       CFE_EVS_SendEvent(TO_REMOVEPKT_INF_EID,CFE_EVS_EventType_INFORMATION,
+           "L%d TO RemovePkt 0x%x",__LINE__, pCmd->Stream);
 } /* End of TO_RemovePkt() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -488,14 +480,15 @@ void TO_RemoveAllPkt(void)
     int32  status;
     int i;
 
-    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subsciption_t))); i++)
+    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subscription_t))); i++)
     {
        if (TO_SubTable[i].Stream != TO_UNUSED )
        {
           status = CFE_SB_Unsubscribe(TO_SubTable[i].Stream, TO_Tlm_pipe);
 
           if(status != CFE_SUCCESS)
-             CFE_EVS_SendEvent(TO_REMOVEALLPTKS_ERR_EID,CFE_EVS_ERROR, "L%d TO Can't Unsubscribe to stream 0x%x status %i", __LINE__,
+             CFE_EVS_SendEvent(TO_REMOVEALLPTKS_ERR_EID,CFE_EVS_EventType_ERROR,
+                  "L%d TO Can't Unsubscribe to stream 0x%x status %i", __LINE__,
                                TO_SubTable[i].Stream, (int)status);
        }
     }
@@ -503,15 +496,18 @@ void TO_RemoveAllPkt(void)
     /* remove commands as well */
     status = CFE_SB_Unsubscribe(TO_LAB_CMD_MID, TO_Cmd_pipe);
     if(status != CFE_SUCCESS)
-       CFE_EVS_SendEvent(TO_REMOVECMDTO_ERR_EID,CFE_EVS_ERROR, "L%d TO Can't Unsubscribe to cmd stream 0x%x status %i", __LINE__,
+       CFE_EVS_SendEvent(TO_REMOVECMDTO_ERR_EID,CFE_EVS_EventType_ERROR,
+                   "L%d TO Can't Unsubscribe to cmd stream 0x%x status %i", __LINE__,
                          TO_LAB_CMD_MID, (int)status);
 
     status = CFE_SB_Unsubscribe(TO_LAB_SEND_HK_MID, TO_Cmd_pipe);
     if (status != CFE_SUCCESS)
-       CFE_EVS_SendEvent(TO_REMOVEHKTO_ERR_EID,CFE_EVS_ERROR, "L%d TO Can't Unsubscribe to cmd stream 0x%x status %i", __LINE__,
+       CFE_EVS_SendEvent(TO_REMOVEHKTO_ERR_EID,CFE_EVS_EventType_ERROR,
+            "L%d TO Can't Unsubscribe to cmd stream 0x%x status %i", __LINE__,
                          TO_LAB_CMD_MID, (int)status);
 
-    CFE_EVS_SendEvent(TO_REMOVEALLPKTS_INF_EID,CFE_EVS_INFORMATION, "L%d TO Unsubscribed to all Commands and Telemetry", __LINE__);
+    CFE_EVS_SendEvent(TO_REMOVEALLPKTS_INF_EID,CFE_EVS_EventType_INFORMATION,
+            "L%d TO Unsubscribed to all Commands and Telemetry", __LINE__);
 } /* End of TO_RemoveAllPkt() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -553,7 +549,7 @@ void TO_forward_telemetry(void)
           }
           if (status < 0)
           {
-             CFE_EVS_SendEvent(TO_TLMOUTSTOP_ERR_EID,CFE_EVS_ERROR,
+             CFE_EVS_SendEvent(TO_TLMOUTSTOP_ERR_EID,CFE_EVS_EventType_ERROR,
                                "L%d TO sendto errno %d. Tlm output supressed\n", __LINE__, errno);
              suppress_sendto = TRUE;
           }
