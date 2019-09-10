@@ -39,8 +39,8 @@
 #ifndef _to_lab_perfids_h_
 #define _to_lab_perfids_h_
 
-#define TO_MAIN_TASK_PERF_ID            22
-#define TO_SOCKET_SEND_PERF_ID          23
+#define TO_MAIN_TASK_PERF_ID            34
+#define TO_SOCKET_SEND_PERF_ID          35
 
 #endif /* _to_lab_perfids_h_ */
 
