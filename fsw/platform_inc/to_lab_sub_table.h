@@ -53,7 +53,7 @@
 #include "lc_msgids.h"
 #endif
 
-static TO_subsciption_t  TO_SubTable[] =
+static TO_subscription_t  TO_SubTable[] =
 {
             /* CFS App Subscriptions */
             {TO_LAB_HK_TLM_MID,     {0,0},  4},
@@ -69,7 +69,8 @@ static TO_subsciption_t  TO_SubTable[] =
             {DS_HK_TLM_MID,         {0,0},  4},
             {LC_HK_TLM_MID,         {0,0},  4},
 #endif
-            /* cFE Core subsciptions */
+
+            /* cFE Core subscriptions */
             {CFE_ES_HK_TLM_MID,          {0,0},  4},
             {CFE_EVS_HK_TLM_MID,         {0,0},  4},
             {CFE_SB_HK_TLM_MID,          {0,0},  4},

@@ -212,7 +212,7 @@ void TO_init(void)
     }
 
     /* Subscriptions for TLM pipe*/
-    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subsciption_t))); i++)
+    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subscription_t))); i++)
     {
        if(TO_SubTable[i].Stream != TO_UNUSED )
           status = CFE_SB_SubscribeEx(TO_SubTable[i].Stream,
@@ -500,7 +500,7 @@ void TO_RemoveAllPkt(void)
     int32  status;
     int i;
 
-    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subsciption_t))); i++)
+    for (i=0; (i < (sizeof(TO_SubTable)/sizeof(TO_subscription_t))); i++)
     {
        if (TO_SubTable[i].Stream != TO_UNUSED )
        {
