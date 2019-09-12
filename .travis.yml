@@ -1,0 +1,51 @@
+dist: xenial
+sudo: required
+language:
+  - c
+compiler:
+  - gcc
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - cmake
+      - gcc-multilib
+      - g++-multilib
+
+before_install:
+# needed for compiling 32bit software on 64bit machine
+  - sudo apt-get install gcc-multilib g++-multilib cppcheck
+
+script:
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib32/:/usr/lib/gcc/x86_64-linux-gnu/7/x32/
+  - ls /usr/lib32/
+  # Check versions of gcc, g++ and cmake
+  - gcc -v && g++ -v && cmake --version
+  # Run your build commands next
+#  - cppcheck --force .
+  - source buildvars.sh
+  - cd ..
+  - git clone $CFS_GITREPO
+  - cd cFS
+  - git checkout $CFS_BRANCH
+  - git submodule init
+  - git submodule update
+##########
+# NOTE: The task_3015 branch contains a bug correction in the cfe code required for to_lab to build
+# Make sure that cfe is using that branch
+  - cd cfe
+  - git checkout $CFS_BRANCH
+#########
+  - cd ..
+  - rm -r apps/to_lab
+  - cp -r ../to_lab apps/to_lab
+  - cp cfe/cmake/Makefile.sample Makefile
+  - cp -r cfe/cmake/sample_defs sample_defs
+  - make prep
+  - make
+  - cd apps/to_lab
+  - cppcheck --force .
+  - cmake .
+  - make
+  - ls libto_lab.a
