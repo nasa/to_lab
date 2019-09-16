@@ -10,9 +10,11 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Release Notes
 
-to_lab version 2.2.0a is released as part of cFE 6.6.0a under the Apache 2.0 license, see [LICENSE](LICENSE-18128-Apache-2_0.pdf).
-
-Note the old GSFC Build toolset is deprecated (fsw/for_build/Makefile) in favor of cmake (CMakeLists.txt)
+- 2.3.0:
+  - Minor updates (see https://github.com/nasa/to_lab/pull/13)
+  - Not backwards compatible with OSAL 4.2.1
+- **2.2.0a OFFICIAL RELEASE **:
+  - Released as part of cFE 6.6.0a under the Apache 2.0 license, see [LICENSE](LICENSE-18128-Apache-2_0.pdf).
 
 ## Known issues
 
