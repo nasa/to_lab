@@ -47,9 +47,9 @@ CFE_SB_PipeId_t   TO_Cmd_pipe;
 */
 static int                TLMsockid;
 static to_data_types_fmt  data_types_pkt;
-static boolean            downlink_on;
+static bool               downlink_on;
 static char               tlm_dest_IP[17];
-static boolean            suppress_sendto;
+static bool               suppress_sendto;
 
 /*
 ** Include the TO subscription table
@@ -106,7 +106,7 @@ void TO_Lab_AppMain(void)
    /*
    ** TO RunLoop
    */
-   while(CFE_ES_RunLoop(&RunStatus) == TRUE)
+   while(CFE_ES_RunLoop(&RunStatus) == true)
    {
         CFE_ES_PerfLogExit(TO_MAIN_TASK_PERF_ID);
 
@@ -131,7 +131,7 @@ void TO_Lab_AppMain(void)
 void TO_delete_callback(void)
 {
     OS_printf("TO delete callback -- Closing TO Network socket.\n");
-    if ( downlink_on == TRUE )
+    if ( downlink_on == true )
     {
         close(TLMsockid);
     }
@@ -153,7 +153,7 @@ void TO_init(void)
     uint16           ToTlmPipeDepth;
 
     CFE_ES_RegisterApp();
-    downlink_on = FALSE;
+    downlink_on = false;
     PipeDepth = 8;
     strcpy(PipeName,  "TO_LAB_CMD_PIPE");
     ToTlmPipeDepth = 64;
@@ -170,7 +170,7 @@ void TO_init(void)
     */
     CFE_SB_InitMsg(&to_hk_status,
                     TO_LAB_HK_TLM_MID,
-                    sizeof(to_hk_status), TRUE);
+                    sizeof(to_hk_status), true);
 
     /* Subscribe to my commands */
     status = CFE_SB_CreatePipe(&TO_Cmd_pipe, PipeDepth, PipeName);
@@ -230,14 +230,14 @@ void TO_StartSending( TO_OUTPUT_ENABLE_PKT_t * pCmd )
     (void) CFE_SB_MessageStringGet(tlm_dest_IP, pCmd->dest_IP, "",
                                    sizeof (tlm_dest_IP),
                                    sizeof (pCmd->dest_IP));
-    suppress_sendto = FALSE;
+    suppress_sendto = false;
     CFE_EVS_SendEvent(TO_TLMOUTENA_INF_EID,CFE_EVS_EventType_INFORMATION,
                       "TO telemetry output enabled for IP %s", tlm_dest_IP);
 
-    if(downlink_on == FALSE) /* Then turn it on, otherwise we will just switch destination addresses*/
+    if(downlink_on == false) /* Then turn it on, otherwise we will just switch destination addresses*/
     {
        TO_openTLM();
-       downlink_on = TRUE;
+       downlink_on = true;
     }
 } /* End of TO_StartSending() */
 
@@ -290,7 +290,7 @@ void TO_process_commands(void)
 void TO_exec_local_command(CFE_SB_MsgPtr_t cmd)
 {
     uint16 CommandCode;
-    boolean valid = TRUE;
+    bool valid = true;
     CommandCode = CFE_SB_GetCmdCode(cmd);
 
     switch (CommandCode)
@@ -323,14 +323,14 @@ void TO_exec_local_command(CFE_SB_MsgPtr_t cmd)
 
        case TO_OUTPUT_ENABLE_CC:
             TO_StartSending( (TO_OUTPUT_ENABLE_PKT_t *)cmd );
-            downlink_on = TRUE;
+            downlink_on = true;
             break;
 
        default:
             CFE_EVS_SendEvent(TO_FNCODE_ERR_EID,CFE_EVS_EventType_ERROR,
                 "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x",__LINE__,
                               CommandCode);
-            valid = FALSE;
+            valid = false;
     }
 
     if (valid)
@@ -363,7 +363,7 @@ void TO_output_data_types_packet(void)
     /* initialize data types packet */
     CFE_SB_InitMsg(&data_types_pkt,
                    TO_LAB_DATA_TYPES_MID,
-                   sizeof(data_types_pkt), TRUE);
+                   sizeof(data_types_pkt), true);
 
     CFE_SB_TimeStampMsg((CFE_SB_MsgPtr_t) &data_types_pkt);
 
@@ -378,8 +378,8 @@ void TO_output_data_types_packet(void)
     data_types_pkt.nibble1 = 0xA;
     data_types_pkt.nibble2 = 0x4;
 #endif
-    data_types_pkt.bl1 = FALSE;
-    data_types_pkt.bl2 = TRUE;
+    data_types_pkt.bl1 = false;
+    data_types_pkt.bl2 = true;
     data_types_pkt.b1 = 16;
     data_types_pkt.b2 = 127;
     data_types_pkt.b3 = 0x7F;
@@ -533,11 +533,11 @@ void TO_forward_telemetry(void)
     {
        CFE_SB_status = CFE_SB_RcvMsg(&PktPtr, TO_Tlm_pipe, CFE_SB_POLL);
 
-       if ( (CFE_SB_status == CFE_SUCCESS) && (suppress_sendto == FALSE) )
+       if ( (CFE_SB_status == CFE_SUCCESS) && (suppress_sendto == false) )
        {
           size = CFE_SB_GetTotalMsgLength(PktPtr);
           
-          if(downlink_on == TRUE)
+          if(downlink_on == true)
           {
              CFE_ES_PerfLogEntry(TO_SOCKET_SEND_PERF_ID);
 
@@ -551,7 +551,7 @@ void TO_forward_telemetry(void)
           {
              CFE_EVS_SendEvent(TO_TLMOUTSTOP_ERR_EID,CFE_EVS_EventType_ERROR,
                                "L%d TO sendto errno %d. Tlm output supressed\n", __LINE__, errno);
-             suppress_sendto = TRUE;
+             suppress_sendto = true;
           }
        }
     /* If CFE_SB_status != CFE_SUCCESS, then no packet was received from CFE_SB_RcvMsg() */
