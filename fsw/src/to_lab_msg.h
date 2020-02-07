@@ -41,20 +41,23 @@
 
 typedef struct
 {
-    uint8              TlmHeader[CFE_SB_TLM_HDR_SIZE];
-    uint8              command_counter;
-    uint8              command_error_counter;
-    uint8              spareToAlign[2];
- 
-} to_hk_tlm_t;
+   uint8              CommandCounter;
+   uint8              CommandErrorCounter;
+   uint8              spareToAlign[2];
+} TO_LAB_HkTlm_Payload_t;
 
-#define TO_HK_TLM_LNGTH      sizeof(to_hk_tlm_t)
+typedef struct
+{
+    uint8              TlmHeader[CFE_SB_TLM_HDR_SIZE];
+    TO_LAB_HkTlm_Payload_t Payload;
+} TO_LAB_HkTlm_t;
+
+#define TO_HK_TLM_LNGTH      sizeof(TO_LAB_HkTlm_t)
 
 /******************************************************************************/
 
 typedef struct
 {
-    uint8              TlmHeader[CFE_SB_TLM_HDR_SIZE];
     uint16             synch;
 #if 0
     bit_field          bit1:1;
@@ -73,20 +76,49 @@ typedef struct
     float              f1, f2;
     double             df1, df2;
     char               str[10];
-}to_data_types_fmt;
+} TO_LAB_DataTypes_Payload_t;
 
-#define TO_DATA_TYPES_LNGTH   sizeof (to_data_types_fmt)
+typedef struct
+{
+    uint8              TlmHeader[CFE_SB_TLM_HDR_SIZE];
+    TO_LAB_DataTypes_Payload_t Payload;
+} TO_LAB_DataTypes_t;
+
+#define TO_DATA_TYPES_LNGTH   sizeof (TO_LAB_DataTypes_t)
 
 /******************************************************************************/
 
 typedef struct
 {
-    uint8              CmdHeader[CFE_SB_CMD_HDR_SIZE];
+    uint8 CmdHeader[CFE_SB_CMD_HDR_SIZE];
+
+} TO_LAB_NoArgsCmd_t;
+
+/*
+ * The following commands do not have any payload,
+ * but should still "reserve" a unique structure type to
+ * employ a consistent handler pattern.
+ *
+ * This matches the pattern in CFE core and other modules.
+ */
+typedef TO_LAB_NoArgsCmd_t  TO_LAB_Noop_t;
+typedef TO_LAB_NoArgsCmd_t  TO_LAB_ResetCounters_t;
+typedef TO_LAB_NoArgsCmd_t  TO_LAB_RemoveAll_t;
+typedef TO_LAB_NoArgsCmd_t  TO_LAB_SendDataTypes_t;
+
+typedef struct
+{
     CFE_SB_MsgId_t     Stream;
     uint16             PktSize;
     CFE_SB_Qos_t       Flags;
     uint8              BufLimit;
-}  TO_ADD_PKT_t;
+} TO_LAB_AddPacket_Payload_t;
+
+typedef struct
+{
+    uint8              CmdHeader[CFE_SB_CMD_HDR_SIZE];
+    TO_LAB_AddPacket_Payload_t Payload;
+}  TO_LAB_AddPacket_t;
 
 
 /*****************************************************************************/
@@ -95,23 +127,33 @@ typedef struct {
       CFE_SB_MsgId_t   Stream;
       CFE_SB_Qos_t     Flags;
       uint16           BufLimit;
- } TO_subscription_t;
+} TO_subscription_t;
 
 /******************************************************************************/
 
 typedef struct
 {
-    uint8              CmdHeader[CFE_SB_CMD_HDR_SIZE];
     CFE_SB_MsgId_t     Stream;
-}  TO_REMOVE_PKT_t;
+}  TO_LAB_RemovePacket_Payload_t;
+
+typedef struct
+{
+    uint8              CmdHeader[CFE_SB_CMD_HDR_SIZE];
+    TO_LAB_RemovePacket_Payload_t Payload;
+}  TO_LAB_RemovePacket_t;
 
 /******************************************************************************/
 
 typedef struct
 {
-    uint8              CmdHeader[CFE_SB_CMD_HDR_SIZE];
     char               dest_IP[16];
-}  TO_OUTPUT_ENABLE_PKT_t;
+} TO_LAB_EnableOutput_Payload_t;
+
+typedef struct
+{
+    uint8              CmdHeader[CFE_SB_CMD_HDR_SIZE];
+    TO_LAB_EnableOutput_Payload_t Payload;
+} TO_LAB_EnableOutput_t;
 
 /******************************************************************************/
 

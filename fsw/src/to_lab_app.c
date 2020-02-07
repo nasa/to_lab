@@ -41,13 +41,13 @@
 typedef union
 {
     CFE_SB_Msg_t     MsgHdr;
-    to_hk_tlm_t      HkTlm;
+    TO_LAB_HkTlm_t   HkTlm;
 } TO_LAB_HkTlm_Buffer_t;
 
 typedef union
 {
     CFE_SB_Msg_t       MsgHdr;
-    to_data_types_fmt  DataTypes;
+    TO_LAB_DataTypes_t DataTypes;
 } TO_LAB_DataTypes_Buffer_t;
 
 typedef struct
@@ -91,18 +91,24 @@ static CFE_EVS_BinFilter_t  CFE_TO_EVS_Filters[] =
 /*
 ** Prototypes Section
 */
-static void TO_openTLM(void);
-static void TO_init(void);
-static void TO_process_commands(void);
-static void TO_exec_local_command(CFE_SB_Msg_t  *MsgPtr);
-static void TO_reset_status(void);
-static void TO_output_data_types_packet(void);
-static void TO_output_status(void);
-static void TO_AddPkt(TO_ADD_PKT_t * cmd);
-static void TO_RemovePkt(TO_REMOVE_PKT_t * cmd);
-static void TO_RemoveAllPkt(void);
-static void TO_forward_telemetry(void);
-static void TO_StartSending( TO_OUTPUT_ENABLE_PKT_t * pCmd );
+void TO_LAB_openTLM(void);
+void TO_LAB_init(void);
+void TO_LAB_exec_local_command(CFE_SB_MsgPtr_t cmd);
+void TO_LAB_process_commands(void);
+void TO_LAB_forward_telemetry(void);
+
+/*
+ * Individual Command Handler prototypes
+ */
+int32 TO_LAB_AddPacket(const TO_LAB_AddPacket_t *data);
+int32 TO_LAB_Noop(const TO_LAB_Noop_t *data);
+int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutput_t *data);
+int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data);
+int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacket_t *data);
+int32 TO_LAB_ResetCounters(const TO_LAB_ResetCounters_t *data);
+int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data);
+int32 TO_LAB_SendHousekeeping(const CCSDS_CommandPacket_t *data);
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                   */
@@ -115,7 +121,7 @@ void TO_Lab_AppMain(void)
    
    CFE_ES_PerfLogEntry(TO_MAIN_TASK_PERF_ID);
 
-   TO_init();
+   TO_LAB_init();
 
    /*
    ** TO RunLoop
@@ -128,9 +134,9 @@ void TO_Lab_AppMain(void)
 
         CFE_ES_PerfLogEntry(TO_MAIN_TASK_PERF_ID);
 
-        TO_forward_telemetry();
+        TO_LAB_forward_telemetry();
 
-        TO_process_commands();
+        TO_LAB_process_commands();
     }
 
    CFE_ES_ExitApp(RunStatus);
@@ -157,7 +163,7 @@ void TO_delete_callback(void)
 /* TO_init() -- TO initialization                                  */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_init(void)
+void TO_LAB_init(void)
 {
     int32            status;
     char             PipeName[16];
@@ -236,11 +242,13 @@ void TO_init(void)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_StartSending() -- TLM output enabled                         */
+/* TO_LAB_EnableOutput() -- TLM output enabled                     */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_StartSending( TO_OUTPUT_ENABLE_PKT_t * pCmd )
+int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutput_t *data)
 {
+    const TO_LAB_EnableOutput_Payload_t *pCmd = &data->Payload;
+
     (void) CFE_SB_MessageStringGet(TO_LAB_Global.tlm_dest_IP, pCmd->dest_IP, "",
                                    sizeof (TO_LAB_Global.tlm_dest_IP),
                                    sizeof (pCmd->dest_IP));
@@ -250,17 +258,22 @@ void TO_StartSending( TO_OUTPUT_ENABLE_PKT_t * pCmd )
 
     if( !TO_LAB_Global.downlink_on ) /* Then turn it on, otherwise we will just switch destination addresses*/
     {
-       TO_openTLM();
+       TO_LAB_openTLM();
        TO_LAB_Global.downlink_on = true;
     }
-} /* End of TO_StartSending() */
+
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
+} /* End of TO_LAB_EnableOutput() */
+
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
 /* TO_process_commands() -- Process command pipe message           */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_process_commands(void)
+void TO_LAB_process_commands(void)
 {
     CFE_SB_Msg_t    *MsgPtr;
     CFE_SB_MsgId_t  MsgId;
@@ -276,12 +289,12 @@ void TO_process_commands(void)
                switch (MsgId)
                {
                   case TO_LAB_CMD_MID:
-                       TO_exec_local_command(MsgPtr);
+                       TO_LAB_exec_local_command(MsgPtr);
                        break;
 
                   case TO_LAB_SEND_HK_MID:
-                       TO_output_status();
-                       break;
+                      TO_LAB_SendHousekeeping((const CCSDS_CommandPacket_t *)MsgPtr);
+                      break;
 
                   default:
                        CFE_EVS_SendEvent(TO_MSGID_ERR_EID,CFE_EVS_EventType_ERROR,
@@ -301,75 +314,81 @@ void TO_process_commands(void)
 /*  TO_exec_local_command() -- Process local message               */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_exec_local_command(CFE_SB_MsgPtr_t cmd)
+void TO_LAB_exec_local_command(CFE_SB_MsgPtr_t cmd)
 {
     uint16 CommandCode;
-    bool valid = true;
     CommandCode = CFE_SB_GetCmdCode(cmd);
 
     switch (CommandCode)
     {
        case TO_NOP_CC:
-            CFE_EVS_SendEvent(TO_NOOP_INF_EID,CFE_EVS_EventType_INFORMATION,
-                              "No-op command");
+            TO_LAB_Noop((const TO_LAB_Noop_t *)cmd);
             break;
 
        case TO_RESET_STATUS_CC:
-            TO_reset_status();
-            --TO_LAB_Global.HkBuf.HkTlm.command_counter;
+            TO_LAB_ResetCounters((const TO_LAB_ResetCounters_t*)cmd);
             break;
 
        case TO_SEND_DATA_TYPES_CC:
-            TO_output_data_types_packet();
+            TO_LAB_SendDataTypes((const TO_LAB_SendDataTypes_t *)cmd);
             break;
 
        case TO_ADD_PKT_CC:
-            TO_AddPkt((TO_ADD_PKT_t *)cmd);
+            TO_LAB_AddPacket((const TO_LAB_AddPacket_t *)cmd);
             break;
 
        case TO_REMOVE_PKT_CC:
-            TO_RemovePkt( (TO_REMOVE_PKT_t *)cmd);
+            TO_LAB_RemovePacket((const TO_LAB_RemovePacket_t *)cmd);
             break;
 
        case TO_REMOVE_ALL_PKT_CC:
-            TO_RemoveAllPkt();
+            TO_LAB_RemoveAll((const TO_LAB_RemoveAll_t *)cmd);
             break;
 
        case TO_OUTPUT_ENABLE_CC:
-            TO_StartSending( (TO_OUTPUT_ENABLE_PKT_t *)cmd );
-            TO_LAB_Global.downlink_on = TRUE;
+            TO_LAB_EnableOutput((const TO_LAB_EnableOutput_t *)cmd);
             break;
 
        default:
             CFE_EVS_SendEvent(TO_FNCODE_ERR_EID,CFE_EVS_EventType_ERROR,
                 "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x",__LINE__,
                               CommandCode);
-            valid = false;
+            ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandErrorCounter;
     }
 
-    if (valid)
-       ++TO_LAB_Global.HkBuf.HkTlm.command_counter;
-    else
-       ++TO_LAB_Global.HkBuf.HkTlm.command_error_counter;
 } /* End of TO_exec_local_command() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_reset_status() -- Reset counters                             */
+/* TO_LAB_Noop() -- Noop Handler                                   */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_reset_status(void)
+int32 TO_LAB_Noop(const TO_LAB_Noop_t *data)
 {
-    TO_LAB_Global.HkBuf.HkTlm.command_error_counter = 0;
-    TO_LAB_Global.HkBuf.HkTlm.command_counter = 0;
-} /* End of TO_reset_status() */
+    CFE_EVS_SendEvent(TO_NOOP_INF_EID,CFE_EVS_EventType_INFORMATION,
+                      "No-op command");
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_output_data_types_packet()  -- Output data types             */
+/* TO_LAB_ResetCounters() -- Reset counters                        */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_output_data_types_packet(void)
+int32 TO_LAB_ResetCounters(const TO_LAB_ResetCounters_t *data)
+{
+    TO_LAB_Global.HkBuf.HkTlm.Payload.CommandErrorCounter = 0;
+    TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter = 0;
+    return CFE_SUCCESS;
+} /* End of TO_LAB_ResetCounters() */
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* TO_LAB_SendDataTypes()  -- Output data types                    */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data)
 {
     int16             i;
     char             string_variable[10] = "ABCDEFGHIJ";
@@ -382,53 +401,57 @@ void TO_output_data_types_packet(void)
     CFE_SB_TimeStampMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr);
 
     /* initialize the packet data */
-    TO_LAB_Global.DataTypesBuf.DataTypes.synch = 0x6969;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.synch = 0x6969;
 #if 0
-    TO_LAB_Global.DataTypesBuf.DataTypes.bit1 = 1;
-    TO_LAB_Global.DataTypesBuf.DataTypes.bit2 = 0;
-    TO_LAB_Global.DataTypesBuf.DataTypes.bit34 = 2;
-    TO_LAB_Global.DataTypesBuf.DataTypes.bit56 = 3;
-    TO_LAB_Global.DataTypesBuf.DataTypes.bit78 = 1;
-    TO_LAB_Global.DataTypesBuf.DataTypes.nibble1 = 0xA;
-    TO_LAB_Global.DataTypesBuf.DataTypes.nibble2 = 0x4;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit1 = 1;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit2 = 0;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit34 = 2;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit56 = 3;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit78 = 1;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.nibble1 = 0xA;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.nibble2 = 0x4;
 #endif
-    TO_LAB_Global.DataTypesBuf.DataTypes.bl1 = false;
-    TO_LAB_Global.DataTypesBuf.DataTypes.bl2 = true;
-    TO_LAB_Global.DataTypesBuf.DataTypes.b1 = 16;
-    TO_LAB_Global.DataTypesBuf.DataTypes.b2 = 127;
-    TO_LAB_Global.DataTypesBuf.DataTypes.b3 = 0x7F;
-    TO_LAB_Global.DataTypesBuf.DataTypes.b4 = 0x45;
-    TO_LAB_Global.DataTypesBuf.DataTypes.w1 = 0x2468;
-    TO_LAB_Global.DataTypesBuf.DataTypes.w2 = 0x7FFF;
-    TO_LAB_Global.DataTypesBuf.DataTypes.dw1 = 0x12345678;
-    TO_LAB_Global.DataTypesBuf.DataTypes.dw2 = 0x87654321;
-    TO_LAB_Global.DataTypesBuf.DataTypes.f1 = 90.01;
-    TO_LAB_Global.DataTypesBuf.DataTypes.f2 = .0000045;
-    TO_LAB_Global.DataTypesBuf.DataTypes.df1 = 99.9;
-    TO_LAB_Global.DataTypesBuf.DataTypes.df2 = .4444;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bl1 = false;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bl2 = true;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b1 = 16;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b2 = 127;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b3 = 0x7F;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b4 = 0x45;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.w1 = 0x2468;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.w2 = 0x7FFF;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.dw1 = 0x12345678;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.dw2 = 0x87654321;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.f1 = 90.01;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.f2 = .0000045;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.df1 = 99.9;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.df2 = .4444;
 
-    for (i=0; i < 10; i++) TO_LAB_Global.DataTypesBuf.DataTypes.str[i] = string_variable[i];
+    for (i=0; i < 10; i++) TO_LAB_Global.DataTypesBuf.DataTypes.Payload.str[i] = string_variable[i];
 
     CFE_SB_SendMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr);
-} /* End of TO_output_data_types_packet() */
+
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
+} /* End of TO_LAB_SendDataTypes() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_output_status() -- HK status                                 */
-/*                                                                 */
+/* TO_LAB_SendHousekeeping() -- HK status                          */
+/* Does not increment CommandCounter                               */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_output_status(void)
+int32 TO_LAB_SendHousekeeping(const CCSDS_CommandPacket_t *data)
 {
     CFE_SB_TimeStampMsg(&TO_LAB_Global.HkBuf.MsgHdr);
     CFE_SB_SendMsg(&TO_LAB_Global.HkBuf.MsgHdr);
-} /* End of TO_output_status() */
+    return CFE_SUCCESS;
+} /* End of TO_LAB_SendHousekeeping() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
 /* TO_openTLM() -- Open TLM                                        */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_openTLM(void)
+void TO_LAB_openTLM(void)
 {
    int32 status;
 
@@ -444,11 +467,12 @@ void TO_openTLM(void)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_AddPkt() -- Add packets                                      */
+/* TO_LAB_AddPacket() -- Add packets                               */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_AddPkt( TO_ADD_PKT_t * pCmd)
+int32 TO_LAB_AddPacket(const TO_LAB_AddPacket_t *data)
 {
+    const TO_LAB_AddPacket_Payload_t *pCmd = &data->Payload;
     int32  status;
 
     status = CFE_SB_SubscribeEx(pCmd->Stream,
@@ -467,15 +491,19 @@ void TO_AddPkt( TO_ADD_PKT_t * pCmd)
                          pCmd->Flags.Priority,
                          pCmd->Flags.Reliability,
                          pCmd->BufLimit);
+
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
 } /* End of TO_AddPkt() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_RemovePkt() -- Remove Packet                                 */
+/* TO_LAB_RemovePacket() -- Remove Packet                          */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_RemovePkt(TO_REMOVE_PKT_t * pCmd)
+int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacket_t *data)
 {
+    const TO_LAB_RemovePacket_Payload_t *pCmd = &data->Payload;
     int32  status;
 
     status = CFE_SB_Unsubscribe(pCmd->Stream, TO_LAB_Global.Tlm_pipe);
@@ -486,14 +514,16 @@ void TO_RemovePkt(TO_REMOVE_PKT_t * pCmd)
     else
        CFE_EVS_SendEvent(TO_REMOVEPKT_INF_EID,CFE_EVS_EventType_INFORMATION,
            "L%d TO RemovePkt 0x%x",__LINE__, pCmd->Stream);
-} /* End of TO_RemovePkt() */
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
+} /* End of TO_LAB_RemovePacket() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_RemoveAllPkt() --  Remove All Packets                        */
+/* TO_LAB_RemoveAll() --  Remove All Packets                       */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_RemoveAllPkt(void)
+int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data)
 {
     int32  status;
     int i;
@@ -526,14 +556,17 @@ void TO_RemoveAllPkt(void)
 
     CFE_EVS_SendEvent(TO_REMOVEALLPKTS_INF_EID,CFE_EVS_EventType_INFORMATION,
             "L%d TO Unsubscribed to all Commands and Telemetry", __LINE__);
-} /* End of TO_RemoveAllPkt() */
+
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
+} /* End of TO_LAB_RemoveAll() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
 /* TO_forward_telemetry() -- Forward telemetry                     */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_forward_telemetry(void)
+void TO_LAB_forward_telemetry(void)
 {
     OS_SockAddr_t             d_addr;
     int32                     status;
