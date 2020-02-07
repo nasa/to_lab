@@ -45,7 +45,7 @@ CFE_SB_PipeId_t   TO_Cmd_pipe;
 /*
 ** Local Data Section
 */
-static int                TLMsockid;
+static uint32             TLMsockid;
 static to_data_types_fmt  data_types_pkt;
 static bool               downlink_on;
 static char               tlm_dest_IP[17];
@@ -133,7 +133,7 @@ void TO_delete_callback(void)
     OS_printf("TO delete callback -- Closing TO Network socket.\n");
     if ( downlink_on == true )
     {
-        close(TLMsockid);
+        OS_close(TLMsockid);
     }
 }
 
@@ -416,9 +416,13 @@ void TO_output_status(void)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_openTLM(void)
 {
-    if ( (TLMsockid = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
-       CFE_EVS_SendEvent(TO_TLMOUTSOCKET_ERR_EID,CFE_EVS_EventType_ERROR,
-                         "L%d, TO TLM socket errno: %d",__LINE__, errno);
+   int32 status;
+
+   status = OS_SocketOpen(&TLMsockid, OS_SocketDomain_INET, OS_SocketType_DATAGRAM);
+   if ( status != OS_SUCCESS )
+   {
+      CFE_EVS_SendEvent(TO_TLMOUTSOCKET_ERR_EID,CFE_EVS_EventType_ERROR, "L%d, TO TLM socket error: %d",__LINE__, (int)status);
+   }
 
 /*---------------- Add static arp entries ----------------*/
 
@@ -517,16 +521,15 @@ void TO_RemoveAllPkt(void)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_forward_telemetry(void)
 {
-    static struct sockaddr_in s_addr;
-    int                       status;
+    OS_SockAddr_t             d_addr;
+    int32                     status;
     int32                     CFE_SB_status;
     uint16                    size;
     CFE_SB_Msg_t              *PktPtr;
 
-    memset(&s_addr, 0, sizeof(s_addr));
-    s_addr.sin_family      = AF_INET;
-    s_addr.sin_addr.s_addr = inet_addr(tlm_dest_IP);
-    s_addr.sin_port        = htons(cfgTLM_PORT);
+    OS_SocketAddrInit(&d_addr, OS_SocketDomain_INET);
+    OS_SocketAddrSetPort(&d_addr, cfgTLM_PORT);
+    OS_SocketAddrFromString(&d_addr, tlm_dest_IP);
     status = 0;
 
     do
@@ -541,17 +544,19 @@ void TO_forward_telemetry(void)
           {
              CFE_ES_PerfLogEntry(TO_SOCKET_SEND_PERF_ID);
 
-             status = sendto(TLMsockid, (char *)PktPtr, size, 0,
-                                        (struct sockaddr *) &s_addr,
-                                         sizeof(s_addr) );
+             status = OS_SocketSendTo(TLMsockid, PktPtr, size, &d_addr);
                                          
              CFE_ES_PerfLogExit(TO_SOCKET_SEND_PERF_ID);                             
+          }
+          else
+          {
+              status = 0;
           }
           if (status < 0)
           {
              CFE_EVS_SendEvent(TO_TLMOUTSTOP_ERR_EID,CFE_EVS_EventType_ERROR,
-                               "L%d TO sendto errno %d. Tlm output supressed\n", __LINE__, errno);
-             suppress_sendto = true;
+                               "L%d TO sendto error %d. Tlm output supressed\n", __LINE__, (int)status);
+             suppress_sendto = TRUE;
           }
        }
     /* If CFE_SB_status != CFE_SUCCESS, then no packet was received from CFE_SB_RcvMsg() */

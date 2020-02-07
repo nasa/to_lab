@@ -30,8 +30,6 @@
 #ifndef _to_lab_app_h_
 #define _to_lab_app_h_
 
-#include "network_includes.h"
-
 #include "cfe_error.h"
 #include "cfe_sb.h"
 #include "cfe_time.h"
