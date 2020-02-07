@@ -38,18 +38,32 @@
 /*
 ** Global Data Section
 */
-to_hk_tlm_t       to_hk_status;
-CFE_SB_PipeId_t   TO_Tlm_pipe;
-CFE_SB_PipeId_t   TO_Cmd_pipe;
+typedef union
+{
+    CFE_SB_Msg_t     MsgHdr;
+    to_hk_tlm_t      HkTlm;
+} TO_LAB_HkTlm_Buffer_t;
 
-/*
-** Local Data Section
-*/
-static uint32             TLMsockid;
-static to_data_types_fmt  data_types_pkt;
-static bool               downlink_on;
-static char               tlm_dest_IP[17];
-static bool               suppress_sendto;
+typedef union
+{
+    CFE_SB_Msg_t       MsgHdr;
+    to_data_types_fmt  DataTypes;
+} TO_LAB_DataTypes_Buffer_t;
+
+typedef struct
+{
+    CFE_SB_PipeId_t    Tlm_pipe;
+    CFE_SB_PipeId_t    Cmd_pipe;
+    uint32             TLMsockid;
+    bool               downlink_on;
+    char               tlm_dest_IP[17];
+    bool               suppress_sendto;
+
+    TO_LAB_HkTlm_Buffer_t     HkBuf;
+    TO_LAB_DataTypes_Buffer_t DataTypesBuf;
+} TO_LAB_GlobalData_t;
+
+TO_LAB_GlobalData_t TO_LAB_Global;
 
 /*
 ** Include the TO subscription table
@@ -131,9 +145,9 @@ void TO_Lab_AppMain(void)
 void TO_delete_callback(void)
 {
     OS_printf("TO delete callback -- Closing TO Network socket.\n");
-    if ( downlink_on == true )
+    if ( TO_LAB_Global.downlink_on )
     {
-        OS_close(TLMsockid);
+        OS_close(TO_LAB_Global.TLMsockid);
     }
 }
 
@@ -153,7 +167,7 @@ void TO_init(void)
     uint16           ToTlmPipeDepth;
 
     CFE_ES_RegisterApp();
-    downlink_on = false;
+    TO_LAB_Global.downlink_on = false;
     PipeDepth = 8;
     strcpy(PipeName,  "TO_LAB_CMD_PIPE");
     ToTlmPipeDepth = 64;
@@ -168,23 +182,23 @@ void TO_init(void)
     /*
     ** Initialize housekeeping packet (clear user data area)...
     */
-    CFE_SB_InitMsg(&to_hk_status,
+    CFE_SB_InitMsg(&TO_LAB_Global.HkBuf.MsgHdr,
                     TO_LAB_HK_TLM_MID,
-                    sizeof(to_hk_status), true);
+                    sizeof(TO_LAB_Global.HkBuf.HkTlm), true);
 
     /* Subscribe to my commands */
-    status = CFE_SB_CreatePipe(&TO_Cmd_pipe, PipeDepth, PipeName);
+    status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, PipeDepth, PipeName);
     if (status == CFE_SUCCESS)
     {
-       CFE_SB_Subscribe(TO_LAB_CMD_MID,     TO_Cmd_pipe);
-       CFE_SB_Subscribe(TO_LAB_SEND_HK_MID, TO_Cmd_pipe);
+       CFE_SB_Subscribe(TO_LAB_CMD_MID,     TO_LAB_Global.Cmd_pipe);
+       CFE_SB_Subscribe(TO_LAB_SEND_HK_MID, TO_LAB_Global.Cmd_pipe);
     }
     else
        CFE_EVS_SendEvent(TO_CRCMDPIPE_ERR_EID,CFE_EVS_EventType_ERROR,
              "L%d TO Can't create cmd pipe status %i",__LINE__,(int)status);
 
     /* Create TO TLM pipe */
-    status = CFE_SB_CreatePipe(&TO_Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
+    status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
     if (status != CFE_SUCCESS)
     {
        CFE_EVS_SendEvent(TO_TLMPIPE_ERR_EID,CFE_EVS_EventType_ERROR,
@@ -196,7 +210,7 @@ void TO_init(void)
     {
        if(TO_SubTable[i].Stream != TO_UNUSED )
           status = CFE_SB_SubscribeEx(TO_SubTable[i].Stream,
-                                      TO_Tlm_pipe,
+                                      TO_LAB_Global.Tlm_pipe,
                                       TO_SubTable[i].Flags,
                                       TO_SubTable[i].BufLimit);
 
@@ -227,17 +241,17 @@ void TO_init(void)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_StartSending( TO_OUTPUT_ENABLE_PKT_t * pCmd )
 {
-    (void) CFE_SB_MessageStringGet(tlm_dest_IP, pCmd->dest_IP, "",
-                                   sizeof (tlm_dest_IP),
+    (void) CFE_SB_MessageStringGet(TO_LAB_Global.tlm_dest_IP, pCmd->dest_IP, "",
+                                   sizeof (TO_LAB_Global.tlm_dest_IP),
                                    sizeof (pCmd->dest_IP));
-    suppress_sendto = false;
+    TO_LAB_Global.suppress_sendto = false;
     CFE_EVS_SendEvent(TO_TLMOUTENA_INF_EID,CFE_EVS_EventType_INFORMATION,
-                      "TO telemetry output enabled for IP %s", tlm_dest_IP);
+                      "TO telemetry output enabled for IP %s", TO_LAB_Global.tlm_dest_IP);
 
-    if(downlink_on == false) /* Then turn it on, otherwise we will just switch destination addresses*/
+    if( !TO_LAB_Global.downlink_on ) /* Then turn it on, otherwise we will just switch destination addresses*/
     {
        TO_openTLM();
-       downlink_on = true;
+       TO_LAB_Global.downlink_on = true;
     }
 } /* End of TO_StartSending() */
 
@@ -253,7 +267,7 @@ void TO_process_commands(void)
 
     while(1)
     {
-       switch (CFE_SB_RcvMsg(&MsgPtr, TO_Cmd_pipe, CFE_SB_POLL))
+       switch (CFE_SB_RcvMsg(&MsgPtr, TO_LAB_Global.Cmd_pipe, CFE_SB_POLL))
        {
           case CFE_SUCCESS:
 
@@ -302,7 +316,7 @@ void TO_exec_local_command(CFE_SB_MsgPtr_t cmd)
 
        case TO_RESET_STATUS_CC:
             TO_reset_status();
-            --to_hk_status.command_counter;
+            --TO_LAB_Global.HkBuf.HkTlm.command_counter;
             break;
 
        case TO_SEND_DATA_TYPES_CC:
@@ -323,7 +337,7 @@ void TO_exec_local_command(CFE_SB_MsgPtr_t cmd)
 
        case TO_OUTPUT_ENABLE_CC:
             TO_StartSending( (TO_OUTPUT_ENABLE_PKT_t *)cmd );
-            downlink_on = true;
+            TO_LAB_Global.downlink_on = TRUE;
             break;
 
        default:
@@ -334,9 +348,9 @@ void TO_exec_local_command(CFE_SB_MsgPtr_t cmd)
     }
 
     if (valid)
-       ++to_hk_status.command_counter;
+       ++TO_LAB_Global.HkBuf.HkTlm.command_counter;
     else
-       ++to_hk_status.command_error_counter;
+       ++TO_LAB_Global.HkBuf.HkTlm.command_error_counter;
 } /* End of TO_exec_local_command() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -346,8 +360,8 @@ void TO_exec_local_command(CFE_SB_MsgPtr_t cmd)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_reset_status(void)
 {
-    to_hk_status.command_error_counter = 0;
-    to_hk_status.command_counter = 0;
+    TO_LAB_Global.HkBuf.HkTlm.command_error_counter = 0;
+    TO_LAB_Global.HkBuf.HkTlm.command_counter = 0;
 } /* End of TO_reset_status() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -361,41 +375,41 @@ void TO_output_data_types_packet(void)
     char             string_variable[10] = "ABCDEFGHIJ";
 
     /* initialize data types packet */
-    CFE_SB_InitMsg(&data_types_pkt,
+    CFE_SB_InitMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr,
                    TO_LAB_DATA_TYPES_MID,
-                   sizeof(data_types_pkt), true);
+                   sizeof(TO_LAB_Global.DataTypesBuf.DataTypes), true);
 
-    CFE_SB_TimeStampMsg((CFE_SB_MsgPtr_t) &data_types_pkt);
+    CFE_SB_TimeStampMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr);
 
     /* initialize the packet data */
-    data_types_pkt.synch = 0x6969;
+    TO_LAB_Global.DataTypesBuf.DataTypes.synch = 0x6969;
 #if 0
-    data_types_pkt.bit1 = 1;
-    data_types_pkt.bit2 = 0;
-    data_types_pkt.bit34 = 2;
-    data_types_pkt.bit56 = 3;
-    data_types_pkt.bit78 = 1;
-    data_types_pkt.nibble1 = 0xA;
-    data_types_pkt.nibble2 = 0x4;
+    TO_LAB_Global.DataTypesBuf.DataTypes.bit1 = 1;
+    TO_LAB_Global.DataTypesBuf.DataTypes.bit2 = 0;
+    TO_LAB_Global.DataTypesBuf.DataTypes.bit34 = 2;
+    TO_LAB_Global.DataTypesBuf.DataTypes.bit56 = 3;
+    TO_LAB_Global.DataTypesBuf.DataTypes.bit78 = 1;
+    TO_LAB_Global.DataTypesBuf.DataTypes.nibble1 = 0xA;
+    TO_LAB_Global.DataTypesBuf.DataTypes.nibble2 = 0x4;
 #endif
-    data_types_pkt.bl1 = false;
-    data_types_pkt.bl2 = true;
-    data_types_pkt.b1 = 16;
-    data_types_pkt.b2 = 127;
-    data_types_pkt.b3 = 0x7F;
-    data_types_pkt.b4 = 0x45;
-    data_types_pkt.w1 = 0x2468;
-    data_types_pkt.w2 = 0x7FFF;
-    data_types_pkt.dw1 = 0x12345678;
-    data_types_pkt.dw2 = 0x87654321;
-    data_types_pkt.f1 = 90.01;
-    data_types_pkt.f2 = .0000045;
-    data_types_pkt.df1 = 99.9;
-    data_types_pkt.df2 = .4444;
+    TO_LAB_Global.DataTypesBuf.DataTypes.bl1 = false;
+    TO_LAB_Global.DataTypesBuf.DataTypes.bl2 = true;
+    TO_LAB_Global.DataTypesBuf.DataTypes.b1 = 16;
+    TO_LAB_Global.DataTypesBuf.DataTypes.b2 = 127;
+    TO_LAB_Global.DataTypesBuf.DataTypes.b3 = 0x7F;
+    TO_LAB_Global.DataTypesBuf.DataTypes.b4 = 0x45;
+    TO_LAB_Global.DataTypesBuf.DataTypes.w1 = 0x2468;
+    TO_LAB_Global.DataTypesBuf.DataTypes.w2 = 0x7FFF;
+    TO_LAB_Global.DataTypesBuf.DataTypes.dw1 = 0x12345678;
+    TO_LAB_Global.DataTypesBuf.DataTypes.dw2 = 0x87654321;
+    TO_LAB_Global.DataTypesBuf.DataTypes.f1 = 90.01;
+    TO_LAB_Global.DataTypesBuf.DataTypes.f2 = .0000045;
+    TO_LAB_Global.DataTypesBuf.DataTypes.df1 = 99.9;
+    TO_LAB_Global.DataTypesBuf.DataTypes.df2 = .4444;
 
-    for (i=0; i < 10; i++) data_types_pkt.str[i] = string_variable[i];
+    for (i=0; i < 10; i++) TO_LAB_Global.DataTypesBuf.DataTypes.str[i] = string_variable[i];
 
-    CFE_SB_SendMsg((CFE_SB_Msg_t *)&data_types_pkt);
+    CFE_SB_SendMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr);
 } /* End of TO_output_data_types_packet() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -405,8 +419,8 @@ void TO_output_data_types_packet(void)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_output_status(void)
 {
-    CFE_SB_TimeStampMsg((CFE_SB_Msg_t *) &to_hk_status);
-    CFE_SB_SendMsg((CFE_SB_Msg_t *)&to_hk_status);
+    CFE_SB_TimeStampMsg(&TO_LAB_Global.HkBuf.MsgHdr);
+    CFE_SB_SendMsg(&TO_LAB_Global.HkBuf.MsgHdr);
 } /* End of TO_output_status() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -418,7 +432,7 @@ void TO_openTLM(void)
 {
    int32 status;
 
-   status = OS_SocketOpen(&TLMsockid, OS_SocketDomain_INET, OS_SocketType_DATAGRAM);
+   status = OS_SocketOpen(&TO_LAB_Global.TLMsockid, OS_SocketDomain_INET, OS_SocketType_DATAGRAM);
    if ( status != OS_SUCCESS )
    {
       CFE_EVS_SendEvent(TO_TLMOUTSOCKET_ERR_EID,CFE_EVS_EventType_ERROR, "L%d, TO TLM socket error: %d",__LINE__, (int)status);
@@ -438,7 +452,7 @@ void TO_AddPkt( TO_ADD_PKT_t * pCmd)
     int32  status;
 
     status = CFE_SB_SubscribeEx(pCmd->Stream,
-                                TO_Tlm_pipe,
+                                TO_LAB_Global.Tlm_pipe,
                                 pCmd->Flags,
                                 pCmd->BufLimit);
 
@@ -464,11 +478,11 @@ void TO_RemovePkt(TO_REMOVE_PKT_t * pCmd)
 {
     int32  status;
 
-    status = CFE_SB_Unsubscribe(pCmd->Stream, TO_Tlm_pipe);
+    status = CFE_SB_Unsubscribe(pCmd->Stream, TO_LAB_Global.Tlm_pipe);
     if(status != CFE_SUCCESS)
        CFE_EVS_SendEvent(TO_REMOVEPKT_ERR_EID,CFE_EVS_EventType_ERROR,
            "L%d TO Can't Unsubscribe to Stream 0x%x on pipe %d, status %i",__LINE__,
-                         pCmd->Stream, TO_Tlm_pipe, (int)status);
+                         pCmd->Stream, TO_LAB_Global.Tlm_pipe, (int)status);
     else
        CFE_EVS_SendEvent(TO_REMOVEPKT_INF_EID,CFE_EVS_EventType_INFORMATION,
            "L%d TO RemovePkt 0x%x",__LINE__, pCmd->Stream);
@@ -488,7 +502,7 @@ void TO_RemoveAllPkt(void)
     {
        if (TO_SubTable[i].Stream != TO_UNUSED )
        {
-          status = CFE_SB_Unsubscribe(TO_SubTable[i].Stream, TO_Tlm_pipe);
+          status = CFE_SB_Unsubscribe(TO_SubTable[i].Stream, TO_LAB_Global.Tlm_pipe);
 
           if(status != CFE_SUCCESS)
              CFE_EVS_SendEvent(TO_REMOVEALLPTKS_ERR_EID,CFE_EVS_EventType_ERROR,
@@ -498,13 +512,13 @@ void TO_RemoveAllPkt(void)
     }
 
     /* remove commands as well */
-    status = CFE_SB_Unsubscribe(TO_LAB_CMD_MID, TO_Cmd_pipe);
+    status = CFE_SB_Unsubscribe(TO_LAB_CMD_MID, TO_LAB_Global.Cmd_pipe);
     if(status != CFE_SUCCESS)
        CFE_EVS_SendEvent(TO_REMOVECMDTO_ERR_EID,CFE_EVS_EventType_ERROR,
                    "L%d TO Can't Unsubscribe to cmd stream 0x%x status %i", __LINE__,
                          TO_LAB_CMD_MID, (int)status);
 
-    status = CFE_SB_Unsubscribe(TO_LAB_SEND_HK_MID, TO_Cmd_pipe);
+    status = CFE_SB_Unsubscribe(TO_LAB_SEND_HK_MID, TO_LAB_Global.Cmd_pipe);
     if (status != CFE_SUCCESS)
        CFE_EVS_SendEvent(TO_REMOVEHKTO_ERR_EID,CFE_EVS_EventType_ERROR,
             "L%d TO Can't Unsubscribe to cmd stream 0x%x status %i", __LINE__,
@@ -529,22 +543,22 @@ void TO_forward_telemetry(void)
 
     OS_SocketAddrInit(&d_addr, OS_SocketDomain_INET);
     OS_SocketAddrSetPort(&d_addr, cfgTLM_PORT);
-    OS_SocketAddrFromString(&d_addr, tlm_dest_IP);
+    OS_SocketAddrFromString(&d_addr, TO_LAB_Global.tlm_dest_IP);
     status = 0;
 
     do
     {
-       CFE_SB_status = CFE_SB_RcvMsg(&PktPtr, TO_Tlm_pipe, CFE_SB_POLL);
+       CFE_SB_status = CFE_SB_RcvMsg(&PktPtr, TO_LAB_Global.Tlm_pipe, CFE_SB_POLL);
 
-       if ( (CFE_SB_status == CFE_SUCCESS) && (suppress_sendto == false) )
+       if ( (CFE_SB_status == CFE_SUCCESS) && (TO_LAB_Global.suppress_sendto == false) )
        {
           size = CFE_SB_GetTotalMsgLength(PktPtr);
           
-          if(downlink_on == true)
+          if(TO_LAB_Global.downlink_on == true)
           {
              CFE_ES_PerfLogEntry(TO_SOCKET_SEND_PERF_ID);
 
-             status = OS_SocketSendTo(TLMsockid, PktPtr, size, &d_addr);
+             status = OS_SocketSendTo(TO_LAB_Global.TLMsockid, PktPtr, size, &d_addr);
                                          
              CFE_ES_PerfLogExit(TO_SOCKET_SEND_PERF_ID);                             
           }
@@ -556,7 +570,7 @@ void TO_forward_telemetry(void)
           {
              CFE_EVS_SendEvent(TO_TLMOUTSTOP_ERR_EID,CFE_EVS_EventType_ERROR,
                                "L%d TO sendto error %d. Tlm output supressed\n", __LINE__, (int)status);
-             suppress_sendto = TRUE;
+             TO_LAB_Global.suppress_sendto = true;
           }
        }
     /* If CFE_SB_status != CFE_SUCCESS, then no packet was received from CFE_SB_RcvMsg() */
