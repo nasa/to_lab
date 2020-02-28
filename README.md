@@ -9,7 +9,9 @@ to_lab is a simple telemetry downlink application that sends CCSDS telecommand p
 To send telemtry to the "ground" or UDP/IP port, edit the subscription table in the platform include file: build/<cpuX>/inc/to_lab_sub_table.h.  to_lab will subscribe to the packet IDs that are listed in this table and send the telemetry packets it receives to the UDP/IP port.
 
 ## Version Notes
-
+- 2.3.1 DEVELOPMENT
+  - Fix for a clean build with OMIT_DEPRECATED
+  - Minor updates (see https://github.com/nasa/to_lab/pull/26)
 - **2.3.0 OFFICIAL RELEASE**:
   - Minor updates (see https://github.com/nasa/to_lab/pull/13)
   - Not backwards compatible with OSAL 4.2.1
@@ -26,4 +28,3 @@ As a lab application, extensive testing is not performed prior to release and on
 For best results, submit issues:questions or issues:help wanted requests at https://github.com/nasa/cFS.
 
 Official cFS page: http://cfs.gsfc.nasa.gov
-
