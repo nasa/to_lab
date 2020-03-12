@@ -38,18 +38,32 @@
 /*
 ** Global Data Section
 */
-to_hk_tlm_t       to_hk_status;
-CFE_SB_PipeId_t   TO_Tlm_pipe;
-CFE_SB_PipeId_t   TO_Cmd_pipe;
+typedef union
+{
+    CFE_SB_Msg_t     MsgHdr;
+    TO_LAB_HkTlm_t   HkTlm;
+} TO_LAB_HkTlm_Buffer_t;
 
-/*
-** Local Data Section
-*/
-static int                TLMsockid;
-static to_data_types_fmt  data_types_pkt;
-static bool               downlink_on;
-static char               tlm_dest_IP[17];
-static bool               suppress_sendto;
+typedef union
+{
+    CFE_SB_Msg_t       MsgHdr;
+    TO_LAB_DataTypes_t DataTypes;
+} TO_LAB_DataTypes_Buffer_t;
+
+typedef struct
+{
+    CFE_SB_PipeId_t    Tlm_pipe;
+    CFE_SB_PipeId_t    Cmd_pipe;
+    uint32             TLMsockid;
+    bool               downlink_on;
+    char               tlm_dest_IP[17];
+    bool               suppress_sendto;
+
+    TO_LAB_HkTlm_Buffer_t     HkBuf;
+    TO_LAB_DataTypes_Buffer_t DataTypesBuf;
+} TO_LAB_GlobalData_t;
+
+TO_LAB_GlobalData_t TO_LAB_Global;
 
 /*
 ** Include the TO subscription table
@@ -77,18 +91,24 @@ static CFE_EVS_BinFilter_t  CFE_TO_EVS_Filters[] =
 /*
 ** Prototypes Section
 */
-static void TO_openTLM(void);
-static void TO_init(void);
-static void TO_process_commands(void);
-static void TO_exec_local_command(CFE_SB_Msg_t  *MsgPtr);
-static void TO_reset_status(void);
-static void TO_output_data_types_packet(void);
-static void TO_output_status(void);
-static void TO_AddPkt(TO_ADD_PKT_t * cmd);
-static void TO_RemovePkt(TO_REMOVE_PKT_t * cmd);
-static void TO_RemoveAllPkt(void);
-static void TO_forward_telemetry(void);
-static void TO_StartSending( TO_OUTPUT_ENABLE_PKT_t * pCmd );
+void TO_LAB_openTLM(void);
+void TO_LAB_init(void);
+void TO_LAB_exec_local_command(CFE_SB_MsgPtr_t cmd);
+void TO_LAB_process_commands(void);
+void TO_LAB_forward_telemetry(void);
+
+/*
+ * Individual Command Handler prototypes
+ */
+int32 TO_LAB_AddPacket(const TO_LAB_AddPacket_t *data);
+int32 TO_LAB_Noop(const TO_LAB_Noop_t *data);
+int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutput_t *data);
+int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data);
+int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacket_t *data);
+int32 TO_LAB_ResetCounters(const TO_LAB_ResetCounters_t *data);
+int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data);
+int32 TO_LAB_SendHousekeeping(const CCSDS_CommandPacket_t *data);
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                   */
@@ -101,7 +121,7 @@ void TO_Lab_AppMain(void)
    
    CFE_ES_PerfLogEntry(TO_MAIN_TASK_PERF_ID);
 
-   TO_init();
+   TO_LAB_init();
 
    /*
    ** TO RunLoop
@@ -114,9 +134,9 @@ void TO_Lab_AppMain(void)
 
         CFE_ES_PerfLogEntry(TO_MAIN_TASK_PERF_ID);
 
-        TO_forward_telemetry();
+        TO_LAB_forward_telemetry();
 
-        TO_process_commands();
+        TO_LAB_process_commands();
     }
 
    CFE_ES_ExitApp(RunStatus);
@@ -131,9 +151,9 @@ void TO_Lab_AppMain(void)
 void TO_delete_callback(void)
 {
     OS_printf("TO delete callback -- Closing TO Network socket.\n");
-    if ( downlink_on == true )
+    if ( TO_LAB_Global.downlink_on )
     {
-        close(TLMsockid);
+        OS_close(TO_LAB_Global.TLMsockid);
     }
 }
 
@@ -143,7 +163,7 @@ void TO_delete_callback(void)
 /* TO_init() -- TO initialization                                  */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_init(void)
+void TO_LAB_init(void)
 {
     int32            status;
     char             PipeName[16];
@@ -153,7 +173,7 @@ void TO_init(void)
     uint16           ToTlmPipeDepth;
 
     CFE_ES_RegisterApp();
-    downlink_on = false;
+    TO_LAB_Global.downlink_on = false;
     PipeDepth = 8;
     strcpy(PipeName,  "TO_LAB_CMD_PIPE");
     ToTlmPipeDepth = 64;
@@ -168,23 +188,23 @@ void TO_init(void)
     /*
     ** Initialize housekeeping packet (clear user data area)...
     */
-    CFE_SB_InitMsg(&to_hk_status,
+    CFE_SB_InitMsg(&TO_LAB_Global.HkBuf.MsgHdr,
                     TO_LAB_HK_TLM_MID,
-                    sizeof(to_hk_status), true);
+                    sizeof(TO_LAB_Global.HkBuf.HkTlm), true);
 
     /* Subscribe to my commands */
-    status = CFE_SB_CreatePipe(&TO_Cmd_pipe, PipeDepth, PipeName);
+    status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, PipeDepth, PipeName);
     if (status == CFE_SUCCESS)
     {
-       CFE_SB_Subscribe(TO_LAB_CMD_MID,     TO_Cmd_pipe);
-       CFE_SB_Subscribe(TO_LAB_SEND_HK_MID, TO_Cmd_pipe);
+       CFE_SB_Subscribe(TO_LAB_CMD_MID,     TO_LAB_Global.Cmd_pipe);
+       CFE_SB_Subscribe(TO_LAB_SEND_HK_MID, TO_LAB_Global.Cmd_pipe);
     }
     else
        CFE_EVS_SendEvent(TO_CRCMDPIPE_ERR_EID,CFE_EVS_EventType_ERROR,
              "L%d TO Can't create cmd pipe status %i",__LINE__,(int)status);
 
     /* Create TO TLM pipe */
-    status = CFE_SB_CreatePipe(&TO_Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
+    status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
     if (status != CFE_SUCCESS)
     {
        CFE_EVS_SendEvent(TO_TLMPIPE_ERR_EID,CFE_EVS_EventType_ERROR,
@@ -196,7 +216,7 @@ void TO_init(void)
     {
        if(TO_SubTable[i].Stream != TO_UNUSED )
           status = CFE_SB_SubscribeEx(TO_SubTable[i].Stream,
-                                      TO_Tlm_pipe,
+                                      TO_LAB_Global.Tlm_pipe,
                                       TO_SubTable[i].Flags,
                                       TO_SubTable[i].BufLimit);
 
@@ -222,38 +242,45 @@ void TO_init(void)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_StartSending() -- TLM output enabled                         */
+/* TO_LAB_EnableOutput() -- TLM output enabled                     */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_StartSending( TO_OUTPUT_ENABLE_PKT_t * pCmd )
+int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutput_t *data)
 {
-    (void) CFE_SB_MessageStringGet(tlm_dest_IP, pCmd->dest_IP, "",
-                                   sizeof (tlm_dest_IP),
-                                   sizeof (pCmd->dest_IP));
-    suppress_sendto = false;
-    CFE_EVS_SendEvent(TO_TLMOUTENA_INF_EID,CFE_EVS_EventType_INFORMATION,
-                      "TO telemetry output enabled for IP %s", tlm_dest_IP);
+    const TO_LAB_EnableOutput_Payload_t *pCmd = &data->Payload;
 
-    if(downlink_on == false) /* Then turn it on, otherwise we will just switch destination addresses*/
+    (void) CFE_SB_MessageStringGet(TO_LAB_Global.tlm_dest_IP, pCmd->dest_IP, "",
+                                   sizeof (TO_LAB_Global.tlm_dest_IP),
+                                   sizeof (pCmd->dest_IP));
+    TO_LAB_Global.suppress_sendto = false;
+    CFE_EVS_SendEvent(TO_TLMOUTENA_INF_EID,CFE_EVS_EventType_INFORMATION,
+                      "TO telemetry output enabled for IP %s", TO_LAB_Global.tlm_dest_IP);
+
+    if( !TO_LAB_Global.downlink_on ) /* Then turn it on, otherwise we will just switch destination addresses*/
     {
-       TO_openTLM();
-       downlink_on = true;
+       TO_LAB_openTLM();
+       TO_LAB_Global.downlink_on = true;
     }
-} /* End of TO_StartSending() */
+
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
+} /* End of TO_LAB_EnableOutput() */
+
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
 /* TO_process_commands() -- Process command pipe message           */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_process_commands(void)
+void TO_LAB_process_commands(void)
 {
     CFE_SB_Msg_t    *MsgPtr;
     CFE_SB_MsgId_t  MsgId;
 
     while(1)
     {
-       switch (CFE_SB_RcvMsg(&MsgPtr, TO_Cmd_pipe, CFE_SB_POLL))
+       switch (CFE_SB_RcvMsg(&MsgPtr, TO_LAB_Global.Cmd_pipe, CFE_SB_POLL))
        {
           case CFE_SUCCESS:
 
@@ -262,12 +289,12 @@ void TO_process_commands(void)
                switch (MsgId)
                {
                   case TO_LAB_CMD_MID:
-                       TO_exec_local_command(MsgPtr);
+                       TO_LAB_exec_local_command(MsgPtr);
                        break;
 
                   case TO_LAB_SEND_HK_MID:
-                       TO_output_status();
-                       break;
+                      TO_LAB_SendHousekeeping((const CCSDS_CommandPacket_t *)MsgPtr);
+                      break;
 
                   default:
                        CFE_EVS_SendEvent(TO_MSGID_ERR_EID,CFE_EVS_EventType_ERROR,
@@ -287,138 +314,152 @@ void TO_process_commands(void)
 /*  TO_exec_local_command() -- Process local message               */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_exec_local_command(CFE_SB_MsgPtr_t cmd)
+void TO_LAB_exec_local_command(CFE_SB_MsgPtr_t cmd)
 {
     uint16 CommandCode;
-    bool valid = true;
     CommandCode = CFE_SB_GetCmdCode(cmd);
 
     switch (CommandCode)
     {
        case TO_NOP_CC:
-            CFE_EVS_SendEvent(TO_NOOP_INF_EID,CFE_EVS_EventType_INFORMATION,
-                              "No-op command");
+            TO_LAB_Noop((const TO_LAB_Noop_t *)cmd);
             break;
 
        case TO_RESET_STATUS_CC:
-            TO_reset_status();
-            --to_hk_status.command_counter;
+            TO_LAB_ResetCounters((const TO_LAB_ResetCounters_t*)cmd);
             break;
 
        case TO_SEND_DATA_TYPES_CC:
-            TO_output_data_types_packet();
+            TO_LAB_SendDataTypes((const TO_LAB_SendDataTypes_t *)cmd);
             break;
 
        case TO_ADD_PKT_CC:
-            TO_AddPkt((TO_ADD_PKT_t *)cmd);
+            TO_LAB_AddPacket((const TO_LAB_AddPacket_t *)cmd);
             break;
 
        case TO_REMOVE_PKT_CC:
-            TO_RemovePkt( (TO_REMOVE_PKT_t *)cmd);
+            TO_LAB_RemovePacket((const TO_LAB_RemovePacket_t *)cmd);
             break;
 
        case TO_REMOVE_ALL_PKT_CC:
-            TO_RemoveAllPkt();
+            TO_LAB_RemoveAll((const TO_LAB_RemoveAll_t *)cmd);
             break;
 
        case TO_OUTPUT_ENABLE_CC:
-            TO_StartSending( (TO_OUTPUT_ENABLE_PKT_t *)cmd );
-            downlink_on = true;
+            TO_LAB_EnableOutput((const TO_LAB_EnableOutput_t *)cmd);
             break;
 
        default:
             CFE_EVS_SendEvent(TO_FNCODE_ERR_EID,CFE_EVS_EventType_ERROR,
                 "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x",__LINE__,
                               CommandCode);
-            valid = false;
+            ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandErrorCounter;
     }
 
-    if (valid)
-       ++to_hk_status.command_counter;
-    else
-       ++to_hk_status.command_error_counter;
 } /* End of TO_exec_local_command() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_reset_status() -- Reset counters                             */
+/* TO_LAB_Noop() -- Noop Handler                                   */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_reset_status(void)
+int32 TO_LAB_Noop(const TO_LAB_Noop_t *data)
 {
-    to_hk_status.command_error_counter = 0;
-    to_hk_status.command_counter = 0;
-} /* End of TO_reset_status() */
+    CFE_EVS_SendEvent(TO_NOOP_INF_EID,CFE_EVS_EventType_INFORMATION,
+                      "No-op command");
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_output_data_types_packet()  -- Output data types             */
+/* TO_LAB_ResetCounters() -- Reset counters                        */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_output_data_types_packet(void)
+int32 TO_LAB_ResetCounters(const TO_LAB_ResetCounters_t *data)
+{
+    TO_LAB_Global.HkBuf.HkTlm.Payload.CommandErrorCounter = 0;
+    TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter = 0;
+    return CFE_SUCCESS;
+} /* End of TO_LAB_ResetCounters() */
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* TO_LAB_SendDataTypes()  -- Output data types                    */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data)
 {
     int16             i;
     char             string_variable[10] = "ABCDEFGHIJ";
 
     /* initialize data types packet */
-    CFE_SB_InitMsg(&data_types_pkt,
+    CFE_SB_InitMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr,
                    TO_LAB_DATA_TYPES_MID,
-                   sizeof(data_types_pkt), true);
+                   sizeof(TO_LAB_Global.DataTypesBuf.DataTypes), true);
 
-    CFE_SB_TimeStampMsg((CFE_SB_MsgPtr_t) &data_types_pkt);
+    CFE_SB_TimeStampMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr);
 
     /* initialize the packet data */
-    data_types_pkt.synch = 0x6969;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.synch = 0x6969;
 #if 0
-    data_types_pkt.bit1 = 1;
-    data_types_pkt.bit2 = 0;
-    data_types_pkt.bit34 = 2;
-    data_types_pkt.bit56 = 3;
-    data_types_pkt.bit78 = 1;
-    data_types_pkt.nibble1 = 0xA;
-    data_types_pkt.nibble2 = 0x4;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit1 = 1;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit2 = 0;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit34 = 2;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit56 = 3;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit78 = 1;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.nibble1 = 0xA;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.nibble2 = 0x4;
 #endif
-    data_types_pkt.bl1 = false;
-    data_types_pkt.bl2 = true;
-    data_types_pkt.b1 = 16;
-    data_types_pkt.b2 = 127;
-    data_types_pkt.b3 = 0x7F;
-    data_types_pkt.b4 = 0x45;
-    data_types_pkt.w1 = 0x2468;
-    data_types_pkt.w2 = 0x7FFF;
-    data_types_pkt.dw1 = 0x12345678;
-    data_types_pkt.dw2 = 0x87654321;
-    data_types_pkt.f1 = 90.01;
-    data_types_pkt.f2 = .0000045;
-    data_types_pkt.df1 = 99.9;
-    data_types_pkt.df2 = .4444;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bl1 = false;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bl2 = true;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b1 = 16;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b2 = 127;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b3 = 0x7F;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b4 = 0x45;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.w1 = 0x2468;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.w2 = 0x7FFF;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.dw1 = 0x12345678;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.dw2 = 0x87654321;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.f1 = 90.01;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.f2 = .0000045;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.df1 = 99.9;
+    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.df2 = .4444;
 
-    for (i=0; i < 10; i++) data_types_pkt.str[i] = string_variable[i];
+    for (i=0; i < 10; i++) TO_LAB_Global.DataTypesBuf.DataTypes.Payload.str[i] = string_variable[i];
 
-    CFE_SB_SendMsg((CFE_SB_Msg_t *)&data_types_pkt);
-} /* End of TO_output_data_types_packet() */
+    CFE_SB_SendMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr);
+
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
+} /* End of TO_LAB_SendDataTypes() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_output_status() -- HK status                                 */
-/*                                                                 */
+/* TO_LAB_SendHousekeeping() -- HK status                          */
+/* Does not increment CommandCounter                               */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_output_status(void)
+int32 TO_LAB_SendHousekeeping(const CCSDS_CommandPacket_t *data)
 {
-    CFE_SB_TimeStampMsg((CFE_SB_Msg_t *) &to_hk_status);
-    CFE_SB_SendMsg((CFE_SB_Msg_t *)&to_hk_status);
-} /* End of TO_output_status() */
+    CFE_SB_TimeStampMsg(&TO_LAB_Global.HkBuf.MsgHdr);
+    CFE_SB_SendMsg(&TO_LAB_Global.HkBuf.MsgHdr);
+    return CFE_SUCCESS;
+} /* End of TO_LAB_SendHousekeeping() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
 /* TO_openTLM() -- Open TLM                                        */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_openTLM(void)
+void TO_LAB_openTLM(void)
 {
-    if ( (TLMsockid = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
-       CFE_EVS_SendEvent(TO_TLMOUTSOCKET_ERR_EID,CFE_EVS_EventType_ERROR,
-                         "L%d, TO TLM socket errno: %d",__LINE__, errno);
+   int32 status;
+
+   status = OS_SocketOpen(&TO_LAB_Global.TLMsockid, OS_SocketDomain_INET, OS_SocketType_DATAGRAM);
+   if ( status != OS_SUCCESS )
+   {
+      CFE_EVS_SendEvent(TO_TLMOUTSOCKET_ERR_EID,CFE_EVS_EventType_ERROR, "L%d, TO TLM socket error: %d",__LINE__, (int)status);
+   }
 
 /*---------------- Add static arp entries ----------------*/
 
@@ -426,15 +467,16 @@ void TO_openTLM(void)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_AddPkt() -- Add packets                                      */
+/* TO_LAB_AddPacket() -- Add packets                               */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_AddPkt( TO_ADD_PKT_t * pCmd)
+int32 TO_LAB_AddPacket(const TO_LAB_AddPacket_t *data)
 {
+    const TO_LAB_AddPacket_Payload_t *pCmd = &data->Payload;
     int32  status;
 
     status = CFE_SB_SubscribeEx(pCmd->Stream,
-                                TO_Tlm_pipe,
+                                TO_LAB_Global.Tlm_pipe,
                                 pCmd->Flags,
                                 pCmd->BufLimit);
 
@@ -449,33 +491,39 @@ void TO_AddPkt( TO_ADD_PKT_t * pCmd)
                          pCmd->Flags.Priority,
                          pCmd->Flags.Reliability,
                          pCmd->BufLimit);
+
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
 } /* End of TO_AddPkt() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_RemovePkt() -- Remove Packet                                 */
+/* TO_LAB_RemovePacket() -- Remove Packet                          */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_RemovePkt(TO_REMOVE_PKT_t * pCmd)
+int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacket_t *data)
 {
+    const TO_LAB_RemovePacket_Payload_t *pCmd = &data->Payload;
     int32  status;
 
-    status = CFE_SB_Unsubscribe(pCmd->Stream, TO_Tlm_pipe);
+    status = CFE_SB_Unsubscribe(pCmd->Stream, TO_LAB_Global.Tlm_pipe);
     if(status != CFE_SUCCESS)
        CFE_EVS_SendEvent(TO_REMOVEPKT_ERR_EID,CFE_EVS_EventType_ERROR,
            "L%d TO Can't Unsubscribe to Stream 0x%x on pipe %d, status %i",__LINE__,
-                         pCmd->Stream, TO_Tlm_pipe, (int)status);
+                         pCmd->Stream, TO_LAB_Global.Tlm_pipe, (int)status);
     else
        CFE_EVS_SendEvent(TO_REMOVEPKT_INF_EID,CFE_EVS_EventType_INFORMATION,
            "L%d TO RemovePkt 0x%x",__LINE__, pCmd->Stream);
-} /* End of TO_RemovePkt() */
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
+} /* End of TO_LAB_RemovePacket() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* TO_RemoveAllPkt() --  Remove All Packets                        */
+/* TO_LAB_RemoveAll() --  Remove All Packets                       */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_RemoveAllPkt(void)
+int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data)
 {
     int32  status;
     int i;
@@ -484,7 +532,7 @@ void TO_RemoveAllPkt(void)
     {
        if (TO_SubTable[i].Stream != TO_UNUSED )
        {
-          status = CFE_SB_Unsubscribe(TO_SubTable[i].Stream, TO_Tlm_pipe);
+          status = CFE_SB_Unsubscribe(TO_SubTable[i].Stream, TO_LAB_Global.Tlm_pipe);
 
           if(status != CFE_SUCCESS)
              CFE_EVS_SendEvent(TO_REMOVEALLPTKS_ERR_EID,CFE_EVS_EventType_ERROR,
@@ -494,13 +542,13 @@ void TO_RemoveAllPkt(void)
     }
 
     /* remove commands as well */
-    status = CFE_SB_Unsubscribe(TO_LAB_CMD_MID, TO_Cmd_pipe);
+    status = CFE_SB_Unsubscribe(TO_LAB_CMD_MID, TO_LAB_Global.Cmd_pipe);
     if(status != CFE_SUCCESS)
        CFE_EVS_SendEvent(TO_REMOVECMDTO_ERR_EID,CFE_EVS_EventType_ERROR,
                    "L%d TO Can't Unsubscribe to cmd stream 0x%x status %i", __LINE__,
                          TO_LAB_CMD_MID, (int)status);
 
-    status = CFE_SB_Unsubscribe(TO_LAB_SEND_HK_MID, TO_Cmd_pipe);
+    status = CFE_SB_Unsubscribe(TO_LAB_SEND_HK_MID, TO_LAB_Global.Cmd_pipe);
     if (status != CFE_SUCCESS)
        CFE_EVS_SendEvent(TO_REMOVEHKTO_ERR_EID,CFE_EVS_EventType_ERROR,
             "L%d TO Can't Unsubscribe to cmd stream 0x%x status %i", __LINE__,
@@ -508,50 +556,54 @@ void TO_RemoveAllPkt(void)
 
     CFE_EVS_SendEvent(TO_REMOVEALLPKTS_INF_EID,CFE_EVS_EventType_INFORMATION,
             "L%d TO Unsubscribed to all Commands and Telemetry", __LINE__);
-} /* End of TO_RemoveAllPkt() */
+
+    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
+} /* End of TO_LAB_RemoveAll() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
 /* TO_forward_telemetry() -- Forward telemetry                     */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_forward_telemetry(void)
+void TO_LAB_forward_telemetry(void)
 {
-    static struct sockaddr_in s_addr;
-    int                       status;
+    OS_SockAddr_t             d_addr;
+    int32                     status;
     int32                     CFE_SB_status;
     uint16                    size;
     CFE_SB_Msg_t              *PktPtr;
 
-    memset(&s_addr, 0, sizeof(s_addr));
-    s_addr.sin_family      = AF_INET;
-    s_addr.sin_addr.s_addr = inet_addr(tlm_dest_IP);
-    s_addr.sin_port        = htons(cfgTLM_PORT);
+    OS_SocketAddrInit(&d_addr, OS_SocketDomain_INET);
+    OS_SocketAddrSetPort(&d_addr, cfgTLM_PORT);
+    OS_SocketAddrFromString(&d_addr, TO_LAB_Global.tlm_dest_IP);
     status = 0;
 
     do
     {
-       CFE_SB_status = CFE_SB_RcvMsg(&PktPtr, TO_Tlm_pipe, CFE_SB_POLL);
+       CFE_SB_status = CFE_SB_RcvMsg(&PktPtr, TO_LAB_Global.Tlm_pipe, CFE_SB_POLL);
 
-       if ( (CFE_SB_status == CFE_SUCCESS) && (suppress_sendto == false) )
+       if ( (CFE_SB_status == CFE_SUCCESS) && (TO_LAB_Global.suppress_sendto == false) )
        {
           size = CFE_SB_GetTotalMsgLength(PktPtr);
           
-          if(downlink_on == true)
+          if(TO_LAB_Global.downlink_on == true)
           {
              CFE_ES_PerfLogEntry(TO_SOCKET_SEND_PERF_ID);
 
-             status = sendto(TLMsockid, (char *)PktPtr, size, 0,
-                                        (struct sockaddr *) &s_addr,
-                                         sizeof(s_addr) );
+             status = OS_SocketSendTo(TO_LAB_Global.TLMsockid, PktPtr, size, &d_addr);
                                          
              CFE_ES_PerfLogExit(TO_SOCKET_SEND_PERF_ID);                             
+          }
+          else
+          {
+              status = 0;
           }
           if (status < 0)
           {
              CFE_EVS_SendEvent(TO_TLMOUTSTOP_ERR_EID,CFE_EVS_EventType_ERROR,
-                               "L%d TO sendto errno %d. Tlm output supressed\n", __LINE__, errno);
-             suppress_sendto = true;
+                               "L%d TO sendto error %d. Tlm output supressed\n", __LINE__, (int)status);
+             TO_LAB_Global.suppress_sendto = true;
           }
        }
     /* If CFE_SB_status != CFE_SUCCESS, then no packet was received from CFE_SB_RcvMsg() */
