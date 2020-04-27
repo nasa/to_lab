@@ -74,7 +74,11 @@ static TO_subscription_t  TO_SubTable[] =
             {CFE_SB_STATS_TLM_MID,       {0,0},  4},
             {CFE_TBL_REG_TLM_MID,        {0,0},  4},
             {CFE_EVS_LONG_EVENT_MSG_MID, {0,0}, 32},
+
+#ifndef CFE_OMIT_DEPRECATED_6_7
             {CFE_ES_SHELL_TLM_MID,       {0,0}, 32},
+#endif
+
             {CFE_ES_APP_TLM_MID,         {0,0},  4},
             {CFE_ES_MEMSTATS_TLM_MID,    {0,0},  4},
 
