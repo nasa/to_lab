@@ -174,9 +174,9 @@ void TO_LAB_init(void)
 
     CFE_ES_RegisterApp();
     TO_LAB_Global.downlink_on = false;
-    PipeDepth = 8;
+    PipeDepth = TO_LAB_CMD_PIPE_DEPTH;
     strcpy(PipeName,  "TO_LAB_CMD_PIPE");
-    ToTlmPipeDepth = 64;
+    ToTlmPipeDepth = TO_LAB_TLM_PIPE_DEPTH;
     strcpy(ToTlmPipeName,  "TO_LAB_TLM_PIPE");
 
     /*
