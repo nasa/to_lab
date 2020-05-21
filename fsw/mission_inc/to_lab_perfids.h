@@ -20,7 +20,7 @@
 **
 ** File: to_lab_perfids.h
 **
-** Purpose: 
+** Purpose:
 **  Define TO Lab Performance IDs
 **
 ** Notes:
@@ -29,8 +29,8 @@
 #ifndef _to_lab_perfids_h_
 #define _to_lab_perfids_h_
 
-#define TO_MAIN_TASK_PERF_ID            34
-#define TO_SOCKET_SEND_PERF_ID          35
+#define TO_MAIN_TASK_PERF_ID   34
+#define TO_SOCKET_SEND_PERF_ID 35
 
 #endif /* _to_lab_perfids_h_ */
 
