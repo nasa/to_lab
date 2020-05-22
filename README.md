@@ -10,6 +10,11 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: 2.3.4
+
+- Configure the maximum depth supported by OSAL, rather than a hard coded 64.
+- See <https://github.com/nasa/to_lab/pull/39>
+
 ### Development Build: 2.3.3
 
 - Apply the CFE_SB_MsgIdToValue() and CFE_SB_ValueToMsgId() routines where compatibility with an integer MsgId is necessary - syslog prints, events, compile-time MID #define values.
