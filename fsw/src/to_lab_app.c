@@ -100,7 +100,7 @@ int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data);
 int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacket_t *data);
 int32 TO_LAB_ResetCounters(const TO_LAB_ResetCounters_t *data);
 int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data);
-int32 TO_LAB_SendHousekeeping(const CCSDS_CommandPacket_t *data);
+int32 TO_LAB_SendHousekeeping(const CFE_SB_CmdHdr_t *data);
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                   */
@@ -273,7 +273,7 @@ void TO_LAB_process_commands(void)
                         break;
 
                     case TO_LAB_SEND_HK_MID:
-                        TO_LAB_SendHousekeeping((const CCSDS_CommandPacket_t *)MsgPtr);
+                        TO_LAB_SendHousekeeping((const CFE_SB_CmdHdr_t *)MsgPtr);
                         break;
 
                     default:
@@ -417,7 +417,7 @@ int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data)
 /* TO_LAB_SendHousekeeping() -- HK status                          */
 /* Does not increment CommandCounter                               */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_SendHousekeeping(const CCSDS_CommandPacket_t *data)
+int32 TO_LAB_SendHousekeeping(const CFE_SB_CmdHdr_t *data)
 {
     CFE_SB_TimeStampMsg(&TO_LAB_Global.HkBuf.MsgHdr);
     CFE_SB_SendMsg(&TO_LAB_Global.HkBuf.MsgHdr);
