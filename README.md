@@ -10,6 +10,11 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: 2.3.5
+
+- Apply code style
+- See <https://github.com/nasa/to_lab/pull/43>
+ 
 ### Development Build: 2.3.4
 
 - Configure the maximum depth supported by OSAL, rather than a hard coded 64.
