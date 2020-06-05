@@ -33,6 +33,7 @@
 #include "to_lab_msgids.h"
 #include "to_lab_perfids.h"
 #include "to_lab_version.h"
+#include "to_lab_sub_table.h"
 
 /*
 ** Global Data Section
@@ -64,14 +65,8 @@ typedef struct
 
 TO_LAB_GlobalData_t TO_LAB_Global;
 
-/*
-** Include the TO subscription table
-**  This header is in the platform include directory
-**  and can be changed for default TO subscriptions in
-**  each CPU.
-*/
-#include "to_lab_sub_table.h"
-
+TO_LAB_Subs_t *TO_LAB_Subs;
+CFE_TBL_Handle_t TO_SubTblHandle;
 /*
 ** Event Filter Table
 */
@@ -85,7 +80,7 @@ static CFE_EVS_BinFilter_t CFE_TO_EVS_Filters[] = {/* Event ID    mask */
 ** Prototypes Section
 */
 void TO_LAB_openTLM(void);
-void TO_LAB_init(void);
+int32 TO_LAB_init(void);
 void TO_LAB_exec_local_command(CFE_SB_MsgPtr_t cmd);
 void TO_LAB_process_commands(void);
 void TO_LAB_forward_telemetry(void);
@@ -110,10 +105,16 @@ int32 TO_LAB_SendHousekeeping(const CCSDS_CommandPacket_t *data);
 void TO_Lab_AppMain(void)
 {
     uint32 RunStatus = CFE_ES_RunStatus_APP_RUN;
+    int32 status;
 
     CFE_ES_PerfLogEntry(TO_MAIN_TASK_PERF_ID);
 
-    TO_LAB_init();
+    status = TO_LAB_init();
+
+    if (status != CFE_SUCCESS)
+    {
+        return;
+    }
 
     /*
     ** TO RunLoop
@@ -154,7 +155,7 @@ void TO_delete_callback(void)
 /* TO_init() -- TO initialization                                  */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_LAB_init(void)
+int TO_LAB_init(void)
 {
     int32  status;
     char   PipeName[16];
@@ -180,6 +181,30 @@ void TO_LAB_init(void)
     */
     CFE_SB_InitMsg(&TO_LAB_Global.HkBuf.MsgHdr, TO_LAB_HK_TLM_MID, sizeof(TO_LAB_Global.HkBuf.HkTlm), true);
 
+    status = CFE_TBL_Register(&TO_SubTblHandle, "TO_LAB_Subs", sizeof(*TO_LAB_Subs), CFE_TBL_OPT_DEFAULT, NULL);
+
+    if (status != CFE_SUCCESS)
+    {
+        CFE_EVS_SendEvent(TO_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't register table status %i", __LINE__, (int)status);
+        return status;
+    }
+
+    status = CFE_TBL_Load(TO_SubTblHandle, CFE_TBL_SRC_FILE, "/cf/to_lab_sub.tbl");
+
+    if (status != CFE_SUCCESS)
+    {
+        CFE_EVS_SendEvent(TO_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't load table status %i", __LINE__, (int)status);
+        return status;
+    }
+
+    status = CFE_TBL_GetAddress((void *)&TO_LAB_Subs, TO_SubTblHandle);
+
+    if (status != CFE_SUCCESS && status != CFE_TBL_INFO_UPDATED)
+    {
+        CFE_EVS_SendEvent(TO_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't get table addr status %i", __LINE__, (int)status);
+        return status;
+    }
+
     /* Subscribe to my commands */
     status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, PipeDepth, PipeName);
     if (status == CFE_SUCCESS)
@@ -200,16 +225,16 @@ void TO_LAB_init(void)
     }
 
     /* Subscriptions for TLM pipe*/
-    for (i = 0; (i < (sizeof(TO_SubTable) / sizeof(TO_subscription_t))); i++)
+    for (i = 0; (i < (sizeof(TO_LAB_Subs->Subs) / sizeof(TO_LAB_Subs->Subs[0]))); i++)
     {
-        if (CFE_SB_IsValidMsgId(TO_SubTable[i].Stream))
-            status = CFE_SB_SubscribeEx(TO_SubTable[i].Stream, TO_LAB_Global.Tlm_pipe, TO_SubTable[i].Flags,
-                                        TO_SubTable[i].BufLimit);
+        if (CFE_SB_IsValidMsgId(TO_LAB_Subs->Subs[i].Stream))
+            status = CFE_SB_SubscribeEx(TO_LAB_Subs->Subs[i].Stream, TO_LAB_Global.Tlm_pipe, TO_LAB_Subs->Subs[i].Flags,
+                                        TO_LAB_Subs->Subs[i].BufLimit);
 
         if (status != CFE_SUCCESS)
             CFE_EVS_SendEvent(TO_SUBSCRIBE_ERR_EID, CFE_EVS_EventType_ERROR,
                               "L%d TO Can't subscribe to stream 0x%x status %i", __LINE__,
-                              (unsigned int)CFE_SB_MsgIdToValue(TO_SubTable[i].Stream), (int)status);
+                              (unsigned int)CFE_SB_MsgIdToValue(TO_LAB_Subs->Subs[i].Stream), (int)status);
     }
 
     /*
@@ -221,7 +246,8 @@ void TO_LAB_init(void)
                       "TO Lab Initialized. Version %d.%d.%d.%d Awaiting enable command.", TO_LAB_MAJOR_VERSION,
                       TO_LAB_MINOR_VERSION, TO_LAB_REVISION, TO_LAB_MISSION_REV);
 
-} /* End of TO_Init() */
+    return CFE_SUCCESS;
+} /* End of TO_LAB_init() */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -500,16 +526,16 @@ int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data)
     int32 status;
     int   i;
 
-    for (i = 0; (i < (sizeof(TO_SubTable) / sizeof(TO_subscription_t))); i++)
+    for (i = 0; (i < (sizeof(TO_LAB_Subs->Subs) / sizeof(TO_LAB_Subs->Subs[0]))); i++)
     {
-        if (CFE_SB_IsValidMsgId(TO_SubTable[i].Stream))
+        if (CFE_SB_IsValidMsgId(TO_LAB_Subs->Subs[i].Stream))
         {
-            status = CFE_SB_Unsubscribe(TO_SubTable[i].Stream, TO_LAB_Global.Tlm_pipe);
+            status = CFE_SB_Unsubscribe(TO_LAB_Subs->Subs[i].Stream, TO_LAB_Global.Tlm_pipe);
 
             if (status != CFE_SUCCESS)
                 CFE_EVS_SendEvent(TO_REMOVEALLPTKS_ERR_EID, CFE_EVS_EventType_ERROR,
                                   "L%d TO Can't Unsubscribe to stream 0x%x status %i", __LINE__,
-                                  (unsigned int)CFE_SB_MsgIdToValue(TO_SubTable[i].Stream), (int)status);
+                                  (unsigned int)CFE_SB_MsgIdToValue(TO_LAB_Subs->Subs[i].Stream), (int)status);
         }
     }
 

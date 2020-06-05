@@ -52,6 +52,7 @@
 #define TO_REMOVEPKT_INF_EID     16
 #define TO_REMOVEALLPKTS_INF_EID 17
 #define TO_NOOP_INF_EID          18
+#define TO_TBL_ERR_EID           19
 
 /******************************************************************************/
 

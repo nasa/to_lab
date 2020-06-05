@@ -36,6 +36,7 @@
 #include "cfe_evs.h"
 #include "cfe_sb.h"
 #include "cfe_es.h"
+#include "cfe_tbl.h"
 
 #include <errno.h>
 #include <string.h>

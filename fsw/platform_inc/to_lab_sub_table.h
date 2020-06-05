@@ -2,7 +2,7 @@
 **
 **      GSC-18128-1, "Core Flight Executive Version 6.7"
 **
-**      Copyright (c) 2006-2019 United States Government as represented by
+**      Copyright (c) 2006-2002 United States Government as represented by
 **      the Administrator of the National Aeronautics and Space Administration.
 **      All Rights Reserved.
 **
@@ -18,7 +18,7 @@
 **      See the License for the specific language governing permissions and
 **      limitations under the License.
 **
-** File: to_sub_table.h
+** File: to_lab_sub_table.h
 **
 ** Purpose:
 **  Define TO Lab CPU specific subscription table
@@ -27,64 +27,19 @@
 **
 *************************************************************************/
 
-/*
-** Add the proper include file for the message IDs below
-*/
 #include "cfe_msgids.h"
+#include "cfe_platform_cfg.h"
+#include "cfe_sb.h"
 
-/*
-** Common CFS app includes below are commented out
-*/
-#include "ci_lab_msgids.h"
+typedef struct
+{
+    CFE_SB_MsgId_t Stream;
+    CFE_SB_Qos_t   Flags;
+    uint16         BufLimit;
+} TO_LAB_Sub_t;
 
-#include "sample_app_msgids.h"
-
-#if 0
-#include "hs_msgids.h"
-#include "fm_msgids.h"
-#include "sc_msgids.h"
-#include "ds_msgids.h"
-#include "lc_msgids.h"
-#endif
-
-static TO_subscription_t TO_SubTable[] = {
-    /* CFS App Subscriptions */
-    {CFE_SB_MSGID_WRAP_VALUE(TO_LAB_HK_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(TO_LAB_DATA_TYPES_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(CI_LAB_HK_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(SAMPLE_APP_HK_TLM_MID), {0, 0}, 4},
-
-#if 0
-            /* Add these if needed */
-            {HS_HK_TLM_MID,         {0,0},  4},
-            {FM_HK_TLM_MID,         {0,0},  4},
-            {SC_HK_TLM_MID,         {0,0},  4},
-            {DS_HK_TLM_MID,         {0,0},  4},
-            {LC_HK_TLM_MID,         {0,0},  4},
-#endif
-
-    /* cFE Core subscriptions */
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_HK_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_EVS_HK_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_SB_HK_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_TBL_HK_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_TIME_HK_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_TIME_DIAG_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_SB_STATS_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_TBL_REG_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_EVS_LONG_EVENT_MSG_MID), {0, 0}, 32},
-
-#ifndef CFE_OMIT_DEPRECATED_6_7
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_SHELL_TLM_MID), {0, 0}, 32},
-#endif
-
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_APP_TLM_MID), {0, 0}, 4},
-    {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_MEMSTATS_TLM_MID), {0, 0}, 4},
-
-    {TO_UNUSED, {0, 0}, 0},
-    {TO_UNUSED, {0, 0}, 0},
-    {TO_UNUSED, {0, 0}, 0}};
-
-/************************
-** End of File Comment **
-************************/
+typedef struct
+{
+    TO_LAB_Sub_t Subs[CFE_PLATFORM_SB_MAX_MSG_IDS];
+}
+TO_LAB_Subs_t;
