@@ -10,6 +10,10 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: 2.3.6
+- Replace references to `ccsds.h` types with the `cfe_sb.h`-provided type. 
+- See <https://github.com/nasa/to_lab/pull/44>
+
 ### Development Build: 2.3.5
 
 - Apply code style
