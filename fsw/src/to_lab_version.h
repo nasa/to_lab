@@ -31,7 +31,7 @@
 
 #define TO_LAB_MAJOR_VERSION 2
 #define TO_LAB_MINOR_VERSION 3
-#define TO_LAB_REVISION      5
+#define TO_LAB_REVISION      6
 #define TO_LAB_MISSION_REV   0
 
 #endif /* _to_lab_version_h_ */
