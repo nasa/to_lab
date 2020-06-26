@@ -155,7 +155,7 @@ void TO_delete_callback(void)
 /* TO_init() -- TO initialization                                  */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int TO_LAB_init(void)
+int32 TO_LAB_init(void)
 {
     int32  status;
     char   PipeName[16];
