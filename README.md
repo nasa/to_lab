@@ -51,7 +51,7 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 - Fix for a clean build with OMIT_DEPRECATED
 - Minor updates (see <https://github.com/nasa/to_lab/pull/26>)
 
-### _**OFFICIAL RELEASE: 2.3.0**_
+### _**OFFICIAL RELEASE: 2.3.0 - Aquila**_
 
 - Minor updates (see <https://github.com/nasa/to_lab/pull/13>)
 
