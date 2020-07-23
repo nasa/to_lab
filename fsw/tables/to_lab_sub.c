@@ -30,6 +30,7 @@
 #include "cfe_tbl_filedef.h"  /* Required to obtain the CFE_TBL_FILEDEF macro definition */
 
 #include "to_lab_sub_table.h"
+#include "to_lab_app.h"
 
 /*
 ** Add the proper include file for the message IDs below
@@ -86,7 +87,10 @@ TO_LAB_Subs_t TO_LAB_Subs =
     #endif
 
         {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_APP_TLM_MID), {0, 0}, 4},
-        {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_MEMSTATS_TLM_MID), {0, 0}, 4}
+        {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_MEMSTATS_TLM_MID), {0, 0}, 4},
+
+        /* TO_UNUSED entry to mark the end of valid MsgIds */
+        {TO_UNUSED, {0, 0}, 0}
     }
 };
 

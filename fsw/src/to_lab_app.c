@@ -227,9 +227,16 @@ int TO_LAB_init(void)
     /* Subscriptions for TLM pipe*/
     for (i = 0; (i < (sizeof(TO_LAB_Subs->Subs) / sizeof(TO_LAB_Subs->Subs[0]))); i++)
     {
-        if (CFE_SB_IsValidMsgId(TO_LAB_Subs->Subs[i].Stream))
+        if (CFE_SB_MsgIdToValue(TO_LAB_Subs->Subs[i].Stream) == TO_UNUSED)
+        {
+            /* Only process until MsgId TO_UNUSED is found*/
+            break;
+        }
+        else if (CFE_SB_IsValidMsgId(TO_LAB_Subs->Subs[i].Stream))
+        {
             status = CFE_SB_SubscribeEx(TO_LAB_Subs->Subs[i].Stream, TO_LAB_Global.Tlm_pipe, TO_LAB_Subs->Subs[i].Flags,
                                         TO_LAB_Subs->Subs[i].BufLimit);
+        }
 
         if (status != CFE_SUCCESS)
             CFE_EVS_SendEvent(TO_SUBSCRIBE_ERR_EID, CFE_EVS_EventType_ERROR,
