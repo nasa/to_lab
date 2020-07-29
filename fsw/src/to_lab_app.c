@@ -227,7 +227,7 @@ int TO_LAB_init(void)
     /* Subscriptions for TLM pipe*/
     for (i = 0; (i < (sizeof(TO_LAB_Subs->Subs) / sizeof(TO_LAB_Subs->Subs[0]))); i++)
     {
-        if (CFE_SB_MsgIdToValue(TO_LAB_Subs->Subs[i].Stream) == TO_UNUSED)
+        if (CFE_SB_MsgId_Equal(TO_LAB_Subs->Subs[i].Stream, TO_UNUSED))
         {
             /* Only process until MsgId TO_UNUSED is found*/
             break;
