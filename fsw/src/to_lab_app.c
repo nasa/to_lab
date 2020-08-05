@@ -155,7 +155,7 @@ void TO_delete_callback(void)
 /* TO_init() -- TO initialization                                  */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int TO_LAB_init(void)
+int32 TO_LAB_init(void)
 {
     int32  status;
     char   PipeName[16];
@@ -227,9 +227,16 @@ int TO_LAB_init(void)
     /* Subscriptions for TLM pipe*/
     for (i = 0; (i < (sizeof(TO_LAB_Subs->Subs) / sizeof(TO_LAB_Subs->Subs[0]))); i++)
     {
-        if (CFE_SB_IsValidMsgId(TO_LAB_Subs->Subs[i].Stream))
+        if (CFE_SB_MsgId_Equal(TO_LAB_Subs->Subs[i].Stream, TO_UNUSED))
+        {
+            /* Only process until MsgId TO_UNUSED is found*/
+            break;
+        }
+        else if (CFE_SB_IsValidMsgId(TO_LAB_Subs->Subs[i].Stream))
+        {
             status = CFE_SB_SubscribeEx(TO_LAB_Subs->Subs[i].Stream, TO_LAB_Global.Tlm_pipe, TO_LAB_Subs->Subs[i].Flags,
                                         TO_LAB_Subs->Subs[i].BufLimit);
+        }
 
         if (status != CFE_SUCCESS)
             CFE_EVS_SendEvent(TO_SUBSCRIBE_ERR_EID, CFE_EVS_EventType_ERROR,
@@ -243,8 +250,7 @@ int TO_LAB_init(void)
     OS_TaskInstallDeleteHandler(&TO_delete_callback);
 
     CFE_EVS_SendEvent(TO_INIT_INF_EID, CFE_EVS_EventType_INFORMATION,
-                      "TO Lab Initialized. Version %d.%d.%d.%d Awaiting enable command.", TO_LAB_MAJOR_VERSION,
-                      TO_LAB_MINOR_VERSION, TO_LAB_REVISION, TO_LAB_MISSION_REV);
+                      "TO Lab Initialized.%s, Awaiting enable command.", TO_LAB_VERSION_STRING);
 
     return CFE_SUCCESS;
 } /* End of TO_LAB_init() */
