@@ -10,6 +10,11 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: 2.4.0-rc1+dev3
+
+- Remove reference to deprecated `CFE_ES_SHELL_TLM_MID`.
+- See <https://github.com/nasa/to_lab/pull/58>
+
 ### Development Build: 2.3.0+dev45
 
 - Fixes bug where an unset address values caused subscriptions to MsgId 0 over 200 times. Added a `TO_UNUSED` entry at the end of the subscription list and a break in the subscription loop when `TO_UNUSED` found. No more subscriptions on the unused table slots (no MsgId 0 subscriptions).
