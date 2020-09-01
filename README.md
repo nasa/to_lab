@@ -10,6 +10,11 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: 2.4.0-rc1+dev6
+
+- Adds header guard to `to_lab_sub_table.h`
+- See <https://github.com/nasa/to_lab/pull/59>
+
 ### Development Build: 2.4.0-rc1+dev3
 
 - Remove reference to deprecated `CFE_ES_SHELL_TLM_MID`.
