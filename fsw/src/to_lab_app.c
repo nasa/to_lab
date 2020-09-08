@@ -54,7 +54,7 @@ typedef struct
 {
     CFE_SB_PipeId_t Tlm_pipe;
     CFE_SB_PipeId_t Cmd_pipe;
-    uint32          TLMsockid;
+    osal_id_t       TLMsockid;
     bool            downlink_on;
     char            tlm_dest_IP[17];
     bool            suppress_sendto;
