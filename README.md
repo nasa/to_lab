@@ -10,6 +10,12 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: 2.4.0-rc1+dev9
+
+- Update the TLMsockid field to be `osal_id_t` instead of uint32
+- Set revision number to 99 to indicate development status in telemetry
+- See <https://github.com/nasa/to_lab/pull/59>
+
 ### Development Build: 2.4.0-rc1+dev6
 
 - Adds header guard to `to_lab_sub_table.h`
@@ -35,14 +41,14 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ### Development Build: 2.3.6
 
-- Replace references to `ccsds.h` types with the `cfe_sb.h`-provided type. 
+- Replace references to `ccsds.h` types with the `cfe_sb.h`-provided type.
 - See <https://github.com/nasa/to_lab/pull/44>
 
 ### Development Build: 2.3.5
 
 - Apply code style
 - See <https://github.com/nasa/to_lab/pull/43>
- 
+
 ### Development Build: 2.3.4
 
 - Configure the maximum depth supported by OSAL, rather than a hard coded 64.
