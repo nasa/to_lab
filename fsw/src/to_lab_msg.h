@@ -48,7 +48,7 @@ typedef struct
 
 typedef struct
 {
-    uint8                  TlmHeader[CFE_SB_TLM_HDR_SIZE];
+    CFE_SB_TlmHdr_t        TlmHeader;
     TO_LAB_HkTlm_Payload_t Payload;
 } TO_LAB_HkTlm_t;
 
@@ -80,9 +80,9 @@ typedef struct
 
 typedef struct
 {
-    uint8                      TlmHeader[CFE_SB_TLM_HDR_SIZE];
+    CFE_SB_TlmHdr_t            TlmHeader;
     TO_LAB_DataTypes_Payload_t Payload;
-} TO_LAB_DataTypes_t;
+} TO_LAB_DataTypesTlm_t;
 
 #define TO_DATA_TYPES_LNGTH sizeof(TO_LAB_DataTypes_t)
 
