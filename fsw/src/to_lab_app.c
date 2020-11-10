@@ -34,22 +34,11 @@
 #include "to_lab_perfids.h"
 #include "to_lab_version.h"
 #include "to_lab_sub_table.h"
+#include "cfe_msg_api.h"
 
 /*
 ** Global Data Section
 */
-typedef union
-{
-    CFE_SB_Msg_t   MsgHdr;
-    TO_LAB_HkTlm_t HkTlm;
-} TO_LAB_HkTlm_Buffer_t;
-
-typedef union
-{
-    CFE_SB_Msg_t       MsgHdr;
-    TO_LAB_DataTypes_t DataTypes;
-} TO_LAB_DataTypes_Buffer_t;
-
 typedef struct
 {
     CFE_SB_PipeId_t Tlm_pipe;
@@ -59,8 +48,8 @@ typedef struct
     char            tlm_dest_IP[17];
     bool            suppress_sendto;
 
-    TO_LAB_HkTlm_Buffer_t     HkBuf;
-    TO_LAB_DataTypes_Buffer_t DataTypesBuf;
+    TO_LAB_HkTlm_t        HkTlm;
+    TO_LAB_DataTypesTlm_t DataTypesTlm;
 } TO_LAB_GlobalData_t;
 
 TO_LAB_GlobalData_t TO_LAB_Global;
@@ -81,7 +70,7 @@ static CFE_EVS_BinFilter_t CFE_TO_EVS_Filters[] = {/* Event ID    mask */
 */
 void TO_LAB_openTLM(void);
 int32 TO_LAB_init(void);
-void TO_LAB_exec_local_command(CFE_SB_MsgPtr_t cmd);
+void TO_LAB_exec_local_command(CFE_MSG_Message_t *MsgPtr);
 void TO_LAB_process_commands(void);
 void TO_LAB_forward_telemetry(void);
 
@@ -179,7 +168,7 @@ int32 TO_LAB_init(void)
     /*
     ** Initialize housekeeping packet (clear user data area)...
     */
-    CFE_SB_InitMsg(&TO_LAB_Global.HkBuf.MsgHdr, TO_LAB_HK_TLM_MID, sizeof(TO_LAB_Global.HkBuf.HkTlm), true);
+    CFE_MSG_Init(&TO_LAB_Global.HkTlm.TlmHeader.BaseMsg, TO_LAB_HK_TLM_MID, sizeof(TO_LAB_Global.HkTlm));
 
     status = CFE_TBL_Register(&TO_SubTblHandle, "TO_LAB_Subs", sizeof(*TO_LAB_Subs), CFE_TBL_OPT_DEFAULT, NULL);
 
@@ -276,7 +265,7 @@ int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutput_t *data)
         TO_LAB_Global.downlink_on = true;
     }
 
-    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
 } /* End of TO_LAB_EnableOutput() */
 
@@ -287,8 +276,8 @@ int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutput_t *data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_LAB_process_commands(void)
 {
-    CFE_SB_Msg_t * MsgPtr;
-    CFE_SB_MsgId_t MsgId;
+    CFE_MSG_Message_t *MsgPtr;
+    CFE_SB_MsgId_t     MsgId = CFE_SB_INVALID_MSG_ID;
 
     while (1)
     {
@@ -296,7 +285,8 @@ void TO_LAB_process_commands(void)
         {
             case CFE_SUCCESS:
 
-                MsgId = CFE_SB_GetMsgId(MsgPtr);
+                CFE_MSG_GetMsgId(MsgPtr, &MsgId);
+
                 /* For SB return statuses that imply a message: process it. */
                 switch (CFE_SB_MsgIdToValue(MsgId))
                 {
@@ -326,45 +316,47 @@ void TO_LAB_process_commands(void)
 /*  TO_exec_local_command() -- Process local message               */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_LAB_exec_local_command(CFE_SB_MsgPtr_t cmd)
+void TO_LAB_exec_local_command(CFE_MSG_Message_t *MsgPtr)
 {
-    uint16 CommandCode;
-    CommandCode = CFE_SB_GetCmdCode(cmd);
+    CFE_MSG_FcnCode_t CommandCode = 0;
+
+    CFE_MSG_GetFcnCode(MsgPtr, &CommandCode);
 
     switch (CommandCode)
     {
         case TO_NOP_CC:
-            TO_LAB_Noop((const TO_LAB_Noop_t *)cmd);
+            TO_LAB_Noop((const TO_LAB_Noop_t *)MsgPtr);
             break;
 
         case TO_RESET_STATUS_CC:
-            TO_LAB_ResetCounters((const TO_LAB_ResetCounters_t *)cmd);
+            TO_LAB_ResetCounters((const TO_LAB_ResetCounters_t *)MsgPtr);
             break;
 
         case TO_SEND_DATA_TYPES_CC:
-            TO_LAB_SendDataTypes((const TO_LAB_SendDataTypes_t *)cmd);
+            TO_LAB_SendDataTypes((const TO_LAB_SendDataTypes_t *)MsgPtr);
             break;
 
         case TO_ADD_PKT_CC:
-            TO_LAB_AddPacket((const TO_LAB_AddPacket_t *)cmd);
+            TO_LAB_AddPacket((const TO_LAB_AddPacket_t *)MsgPtr);
             break;
 
         case TO_REMOVE_PKT_CC:
-            TO_LAB_RemovePacket((const TO_LAB_RemovePacket_t *)cmd);
+            TO_LAB_RemovePacket((const TO_LAB_RemovePacket_t *)MsgPtr);
             break;
 
         case TO_REMOVE_ALL_PKT_CC:
-            TO_LAB_RemoveAll((const TO_LAB_RemoveAll_t *)cmd);
+            TO_LAB_RemoveAll((const TO_LAB_RemoveAll_t *)MsgPtr);
             break;
 
         case TO_OUTPUT_ENABLE_CC:
-            TO_LAB_EnableOutput((const TO_LAB_EnableOutput_t *)cmd);
+            TO_LAB_EnableOutput((const TO_LAB_EnableOutput_t *)MsgPtr);
             break;
 
         default:
             CFE_EVS_SendEvent(TO_FNCODE_ERR_EID, CFE_EVS_EventType_ERROR,
-                              "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x", __LINE__, CommandCode);
-            ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandErrorCounter;
+                              "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x", __LINE__,
+                              (unsigned int)CommandCode);
+            ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
     }
 
 } /* End of TO_exec_local_command() */
@@ -377,7 +369,7 @@ void TO_LAB_exec_local_command(CFE_SB_MsgPtr_t cmd)
 int32 TO_LAB_Noop(const TO_LAB_Noop_t *data)
 {
     CFE_EVS_SendEvent(TO_NOOP_INF_EID, CFE_EVS_EventType_INFORMATION, "No-op command");
-    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
 }
 
@@ -388,8 +380,8 @@ int32 TO_LAB_Noop(const TO_LAB_Noop_t *data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int32 TO_LAB_ResetCounters(const TO_LAB_ResetCounters_t *data)
 {
-    TO_LAB_Global.HkBuf.HkTlm.Payload.CommandErrorCounter = 0;
-    TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter      = 0;
+    TO_LAB_Global.HkTlm.Payload.CommandErrorCounter = 0;
+    TO_LAB_Global.HkTlm.Payload.CommandCounter      = 0;
     return CFE_SUCCESS;
 } /* End of TO_LAB_ResetCounters() */
 
@@ -404,43 +396,43 @@ int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data)
     char  string_variable[10] = "ABCDEFGHIJ";
 
     /* initialize data types packet */
-    CFE_SB_InitMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr, TO_LAB_DATA_TYPES_MID,
-                   sizeof(TO_LAB_Global.DataTypesBuf.DataTypes), true);
+    CFE_MSG_Init(&TO_LAB_Global.DataTypesTlm.TlmHeader.BaseMsg, TO_LAB_DATA_TYPES_MID,
+                   sizeof(TO_LAB_Global.DataTypesTlm));
 
-    CFE_SB_TimeStampMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr);
+    CFE_SB_TimeStampMsg(&TO_LAB_Global.DataTypesTlm.TlmHeader.BaseMsg);
 
     /* initialize the packet data */
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.synch = 0x6969;
+    TO_LAB_Global.DataTypesTlm.Payload.synch = 0x6969;
 #if 0
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit1 = 1;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit2 = 0;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit34 = 2;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit56 = 3;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bit78 = 1;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.nibble1 = 0xA;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.nibble2 = 0x4;
+    TO_LAB_Global.DataTypesTlm.Payload.bit1 = 1;
+    TO_LAB_Global.DataTypesTlm.Payload.bit2 = 0;
+    TO_LAB_Global.DataTypesTlm.Payload.bit34 = 2;
+    TO_LAB_Global.DataTypesTlm.Payload.bit56 = 3;
+    TO_LAB_Global.DataTypesTlm.Payload.bit78 = 1;
+    TO_LAB_Global.DataTypesTlm.Payload.nibble1 = 0xA;
+    TO_LAB_Global.DataTypesTlm.Payload.nibble2 = 0x4;
 #endif
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bl1 = false;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.bl2 = true;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b1  = 16;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b2  = 127;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b3  = 0x7F;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.b4  = 0x45;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.w1  = 0x2468;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.w2  = 0x7FFF;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.dw1 = 0x12345678;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.dw2 = 0x87654321;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.f1  = 90.01;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.f2  = .0000045;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.df1 = 99.9;
-    TO_LAB_Global.DataTypesBuf.DataTypes.Payload.df2 = .4444;
+    TO_LAB_Global.DataTypesTlm.Payload.bl1 = false;
+    TO_LAB_Global.DataTypesTlm.Payload.bl2 = true;
+    TO_LAB_Global.DataTypesTlm.Payload.b1  = 16;
+    TO_LAB_Global.DataTypesTlm.Payload.b2  = 127;
+    TO_LAB_Global.DataTypesTlm.Payload.b3  = 0x7F;
+    TO_LAB_Global.DataTypesTlm.Payload.b4  = 0x45;
+    TO_LAB_Global.DataTypesTlm.Payload.w1  = 0x2468;
+    TO_LAB_Global.DataTypesTlm.Payload.w2  = 0x7FFF;
+    TO_LAB_Global.DataTypesTlm.Payload.dw1 = 0x12345678;
+    TO_LAB_Global.DataTypesTlm.Payload.dw2 = 0x87654321;
+    TO_LAB_Global.DataTypesTlm.Payload.f1  = 90.01;
+    TO_LAB_Global.DataTypesTlm.Payload.f2  = .0000045;
+    TO_LAB_Global.DataTypesTlm.Payload.df1 = 99.9;
+    TO_LAB_Global.DataTypesTlm.Payload.df2 = .4444;
 
     for (i = 0; i < 10; i++)
-        TO_LAB_Global.DataTypesBuf.DataTypes.Payload.str[i] = string_variable[i];
+        TO_LAB_Global.DataTypesTlm.Payload.str[i] = string_variable[i];
 
-    CFE_SB_SendMsg(&TO_LAB_Global.DataTypesBuf.MsgHdr);
+    CFE_SB_SendMsg(&TO_LAB_Global.DataTypesTlm.TlmHeader.BaseMsg);
 
-    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
 } /* End of TO_LAB_SendDataTypes() */
 
@@ -451,8 +443,8 @@ int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int32 TO_LAB_SendHousekeeping(const CFE_SB_CmdHdr_t *data)
 {
-    CFE_SB_TimeStampMsg(&TO_LAB_Global.HkBuf.MsgHdr);
-    CFE_SB_SendMsg(&TO_LAB_Global.HkBuf.MsgHdr);
+    CFE_SB_TimeStampMsg(&TO_LAB_Global.HkTlm.TlmHeader.BaseMsg);
+    CFE_SB_SendMsg(&TO_LAB_Global.HkTlm.TlmHeader.BaseMsg);
     return CFE_SUCCESS;
 } /* End of TO_LAB_SendHousekeeping() */
 
@@ -496,7 +488,7 @@ int32 TO_LAB_AddPacket(const TO_LAB_AddPacket_t *data)
                           __LINE__, (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream), pCmd->Flags.Priority,
                           pCmd->Flags.Reliability, pCmd->BufLimit);
 
-    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
 } /* End of TO_AddPkt() */
 
@@ -518,7 +510,7 @@ int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacket_t *data)
     else
         CFE_EVS_SendEvent(TO_REMOVEPKT_INF_EID, CFE_EVS_EventType_INFORMATION, "L%d TO RemovePkt 0x%x", __LINE__,
                           (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream));
-    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
 } /* End of TO_LAB_RemovePacket() */
 
@@ -561,7 +553,7 @@ int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data)
     CFE_EVS_SendEvent(TO_REMOVEALLPKTS_INF_EID, CFE_EVS_EventType_INFORMATION,
                       "L%d TO Unsubscribed to all Commands and Telemetry", __LINE__);
 
-    ++TO_LAB_Global.HkBuf.HkTlm.Payload.CommandCounter;
+    ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
 } /* End of TO_LAB_RemoveAll() */
 
@@ -572,11 +564,11 @@ int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_LAB_forward_telemetry(void)
 {
-    OS_SockAddr_t d_addr;
-    int32         status;
-    int32         CFE_SB_status;
-    uint16        size;
-    CFE_SB_Msg_t *PktPtr;
+    OS_SockAddr_t      d_addr;
+    int32              status;
+    int32              CFE_SB_status;
+    CFE_MSG_Size_t     size;
+    CFE_MSG_Message_t *PktPtr;
 
     OS_SocketAddrInit(&d_addr, OS_SocketDomain_INET);
     OS_SocketAddrSetPort(&d_addr, cfgTLM_PORT);
@@ -589,7 +581,7 @@ void TO_LAB_forward_telemetry(void)
 
         if ((CFE_SB_status == CFE_SUCCESS) && (TO_LAB_Global.suppress_sendto == false))
         {
-            size = CFE_SB_GetTotalMsgLength(PktPtr);
+            CFE_MSG_GetSize(PktPtr, &size);
 
             if (TO_LAB_Global.downlink_on == true)
             {
