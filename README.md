@@ -10,6 +10,11 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: 2.4.0-rc1+dev13
+
+- Replaces deprecated SB API's with MSG
+- See <https://github.com/nasa/to_lab/pull/65>
+
 ### Development Build: 2.4.0-rc1+dev9
 
 - Update the TLMsockid field to be `osal_id_t` instead of uint32
