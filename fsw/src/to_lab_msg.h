@@ -48,11 +48,9 @@ typedef struct
 
 typedef struct
 {
-    CFE_SB_TlmHdr_t        TlmHeader;
-    TO_LAB_HkTlm_Payload_t Payload;
+    CFE_MSG_TelemetryHeader_t TlmHeader; /**< \brief Telemetry header */
+    TO_LAB_HkTlm_Payload_t    Payload;   /**< \brief Telemetry payload */
 } TO_LAB_HkTlm_t;
-
-#define TO_HK_TLM_LNGTH sizeof(TO_LAB_HkTlm_t)
 
 /******************************************************************************/
 
@@ -80,18 +78,15 @@ typedef struct
 
 typedef struct
 {
-    CFE_SB_TlmHdr_t            TlmHeader;
-    TO_LAB_DataTypes_Payload_t Payload;
+    CFE_MSG_TelemetryHeader_t  TlmHeader; /**< \brief Telemetry header */
+    TO_LAB_DataTypes_Payload_t Payload;   /**< \brief Telemetry payload */
 } TO_LAB_DataTypesTlm_t;
-
-#define TO_DATA_TYPES_LNGTH sizeof(TO_LAB_DataTypes_t)
 
 /******************************************************************************/
 
 typedef struct
 {
-    uint8 CmdHeader[CFE_SB_CMD_HDR_SIZE];
-
+    CFE_MSG_CommandHeader_t CmdHeade; /**< \brief Command header */
 } TO_LAB_NoArgsCmd_t;
 
 /*
@@ -101,10 +96,10 @@ typedef struct
  *
  * This matches the pattern in CFE core and other modules.
  */
-typedef TO_LAB_NoArgsCmd_t TO_LAB_Noop_t;
-typedef TO_LAB_NoArgsCmd_t TO_LAB_ResetCounters_t;
-typedef TO_LAB_NoArgsCmd_t TO_LAB_RemoveAll_t;
-typedef TO_LAB_NoArgsCmd_t TO_LAB_SendDataTypes_t;
+typedef TO_LAB_NoArgsCmd_t TO_LAB_NoopCmd_t;
+typedef TO_LAB_NoArgsCmd_t TO_LAB_ResetCountersCmd_t;
+typedef TO_LAB_NoArgsCmd_t TO_LAB_RemoveAllCmd_t;
+typedef TO_LAB_NoArgsCmd_t TO_LAB_SendDataTypesCmd_t;
 
 typedef struct
 {
@@ -116,9 +111,9 @@ typedef struct
 
 typedef struct
 {
-    uint8                      CmdHeader[CFE_SB_CMD_HDR_SIZE];
-    TO_LAB_AddPacket_Payload_t Payload;
-} TO_LAB_AddPacket_t;
+    CFE_MSG_CommandHeader_t    CmdHeader; /**< \brief Command header */
+    TO_LAB_AddPacket_Payload_t Payload;   /**< \brief Command payload */
+} TO_LAB_AddPacketCmd_t;
 
 /*****************************************************************************/
 
@@ -138,9 +133,9 @@ typedef struct
 
 typedef struct
 {
-    uint8                         CmdHeader[CFE_SB_CMD_HDR_SIZE];
-    TO_LAB_RemovePacket_Payload_t Payload;
-} TO_LAB_RemovePacket_t;
+    CFE_MSG_CommandHeader_t       CmdHeader; /**< \brief Command header */
+    TO_LAB_RemovePacket_Payload_t Payload;   /**< \brief Command paylod */
+} TO_LAB_RemovePacketCmd_t;
 
 /******************************************************************************/
 
@@ -151,9 +146,9 @@ typedef struct
 
 typedef struct
 {
-    uint8                         CmdHeader[CFE_SB_CMD_HDR_SIZE];
-    TO_LAB_EnableOutput_Payload_t Payload;
-} TO_LAB_EnableOutput_t;
+    CFE_MSG_CommandHeader_t       CmdHeader; /**< \brief Command header */
+    TO_LAB_EnableOutput_Payload_t Payload;   /**< \brief Command payload */
+} TO_LAB_EnableOutputCmd_t;
 
 /******************************************************************************/
 
