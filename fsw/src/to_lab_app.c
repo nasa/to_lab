@@ -54,7 +54,7 @@ typedef struct
 
 TO_LAB_GlobalData_t TO_LAB_Global;
 
-TO_LAB_Subs_t *TO_LAB_Subs;
+TO_LAB_Subs_t *  TO_LAB_Subs;
 CFE_TBL_Handle_t TO_SubTblHandle;
 /*
 ** Event Filter Table
@@ -68,23 +68,23 @@ static CFE_EVS_BinFilter_t CFE_TO_EVS_Filters[] = {/* Event ID    mask */
 /*
 ** Prototypes Section
 */
-void TO_LAB_openTLM(void);
+void  TO_LAB_openTLM(void);
 int32 TO_LAB_init(void);
-void TO_LAB_exec_local_command(CFE_MSG_Message_t *MsgPtr);
-void TO_LAB_process_commands(void);
-void TO_LAB_forward_telemetry(void);
+void  TO_LAB_exec_local_command(CFE_SB_Buffer_t *SBBufPtr);
+void  TO_LAB_process_commands(void);
+void  TO_LAB_forward_telemetry(void);
 
 /*
  * Individual Command Handler prototypes
  */
-int32 TO_LAB_AddPacket(const TO_LAB_AddPacket_t *data);
-int32 TO_LAB_Noop(const TO_LAB_Noop_t *data);
-int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutput_t *data);
-int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data);
-int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacket_t *data);
-int32 TO_LAB_ResetCounters(const TO_LAB_ResetCounters_t *data);
-int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data);
-int32 TO_LAB_SendHousekeeping(const CFE_SB_CmdHdr_t *data);
+int32 TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data);
+int32 TO_LAB_Noop(const TO_LAB_NoopCmd_t *data);
+int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutputCmd_t *data);
+int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data);
+int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data);
+int32 TO_LAB_ResetCounters(const TO_LAB_ResetCountersCmd_t *data);
+int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data);
+int32 TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data);
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                   */
@@ -94,7 +94,7 @@ int32 TO_LAB_SendHousekeeping(const CFE_SB_CmdHdr_t *data);
 void TO_Lab_AppMain(void)
 {
     uint32 RunStatus = CFE_ES_RunStatus_APP_RUN;
-    int32 status;
+    int32  status;
 
     CFE_ES_PerfLogEntry(TO_MAIN_TASK_PERF_ID);
 
@@ -168,13 +168,14 @@ int32 TO_LAB_init(void)
     /*
     ** Initialize housekeeping packet (clear user data area)...
     */
-    CFE_MSG_Init(&TO_LAB_Global.HkTlm.TlmHeader.BaseMsg, TO_LAB_HK_TLM_MID, sizeof(TO_LAB_Global.HkTlm));
+    CFE_MSG_Init(&TO_LAB_Global.HkTlm.TlmHeader.Msg, TO_LAB_HK_TLM_MID, sizeof(TO_LAB_Global.HkTlm));
 
     status = CFE_TBL_Register(&TO_SubTblHandle, "TO_LAB_Subs", sizeof(*TO_LAB_Subs), CFE_TBL_OPT_DEFAULT, NULL);
 
     if (status != CFE_SUCCESS)
     {
-        CFE_EVS_SendEvent(TO_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't register table status %i", __LINE__, (int)status);
+        CFE_EVS_SendEvent(TO_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't register table status %i", __LINE__,
+                          (int)status);
         return status;
     }
 
@@ -182,7 +183,8 @@ int32 TO_LAB_init(void)
 
     if (status != CFE_SUCCESS)
     {
-        CFE_EVS_SendEvent(TO_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't load table status %i", __LINE__, (int)status);
+        CFE_EVS_SendEvent(TO_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't load table status %i", __LINE__,
+                          (int)status);
         return status;
     }
 
@@ -190,7 +192,8 @@ int32 TO_LAB_init(void)
 
     if (status != CFE_SUCCESS && status != CFE_TBL_INFO_UPDATED)
     {
-        CFE_EVS_SendEvent(TO_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't get table addr status %i", __LINE__, (int)status);
+        CFE_EVS_SendEvent(TO_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't get table addr status %i", __LINE__,
+                          (int)status);
         return status;
     }
 
@@ -238,8 +241,8 @@ int32 TO_LAB_init(void)
     */
     OS_TaskInstallDeleteHandler(&TO_delete_callback);
 
-    CFE_EVS_SendEvent(TO_INIT_INF_EID, CFE_EVS_EventType_INFORMATION,
-                      "TO Lab Initialized.%s, Awaiting enable command.", TO_LAB_VERSION_STRING);
+    CFE_EVS_SendEvent(TO_INIT_INF_EID, CFE_EVS_EventType_INFORMATION, "TO Lab Initialized.%s, Awaiting enable command.",
+                      TO_LAB_VERSION_STRING);
 
     return CFE_SUCCESS;
 } /* End of TO_LAB_init() */
@@ -249,7 +252,7 @@ int32 TO_LAB_init(void)
 /* TO_LAB_EnableOutput() -- TLM output enabled                     */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutput_t *data)
+int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutputCmd_t *data)
 {
     const TO_LAB_EnableOutput_Payload_t *pCmd = &data->Payload;
 
@@ -276,26 +279,26 @@ int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutput_t *data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_LAB_process_commands(void)
 {
-    CFE_MSG_Message_t *MsgPtr;
-    CFE_SB_MsgId_t     MsgId = CFE_SB_INVALID_MSG_ID;
+    CFE_SB_Buffer_t *SBBufPtr;
+    CFE_SB_MsgId_t   MsgId = CFE_SB_INVALID_MSG_ID;
 
     while (1)
     {
-        switch (CFE_SB_RcvMsg(&MsgPtr, TO_LAB_Global.Cmd_pipe, CFE_SB_POLL))
+        switch (CFE_SB_ReceiveBuffer(&SBBufPtr, TO_LAB_Global.Cmd_pipe, CFE_SB_POLL))
         {
             case CFE_SUCCESS:
 
-                CFE_MSG_GetMsgId(MsgPtr, &MsgId);
+                CFE_MSG_GetMsgId(&SBBufPtr->Msg, &MsgId);
 
                 /* For SB return statuses that imply a message: process it. */
                 switch (CFE_SB_MsgIdToValue(MsgId))
                 {
                     case TO_LAB_CMD_MID:
-                        TO_LAB_exec_local_command(MsgPtr);
+                        TO_LAB_exec_local_command(SBBufPtr);
                         break;
 
                     case TO_LAB_SEND_HK_MID:
-                        TO_LAB_SendHousekeeping((const CFE_SB_CmdHdr_t *)MsgPtr);
+                        TO_LAB_SendHousekeeping((const CFE_MSG_CommandHeader_t *)SBBufPtr);
                         break;
 
                     default:
@@ -316,40 +319,40 @@ void TO_LAB_process_commands(void)
 /*  TO_exec_local_command() -- Process local message               */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_LAB_exec_local_command(CFE_MSG_Message_t *MsgPtr)
+void TO_LAB_exec_local_command(CFE_SB_Buffer_t *SBBufPtr)
 {
     CFE_MSG_FcnCode_t CommandCode = 0;
 
-    CFE_MSG_GetFcnCode(MsgPtr, &CommandCode);
+    CFE_MSG_GetFcnCode(&SBBufPtr->Msg, &CommandCode);
 
     switch (CommandCode)
     {
         case TO_NOP_CC:
-            TO_LAB_Noop((const TO_LAB_Noop_t *)MsgPtr);
+            TO_LAB_Noop((const TO_LAB_NoopCmd_t *)SBBufPtr);
             break;
 
         case TO_RESET_STATUS_CC:
-            TO_LAB_ResetCounters((const TO_LAB_ResetCounters_t *)MsgPtr);
+            TO_LAB_ResetCounters((const TO_LAB_ResetCountersCmd_t *)SBBufPtr);
             break;
 
         case TO_SEND_DATA_TYPES_CC:
-            TO_LAB_SendDataTypes((const TO_LAB_SendDataTypes_t *)MsgPtr);
+            TO_LAB_SendDataTypes((const TO_LAB_SendDataTypesCmd_t *)SBBufPtr);
             break;
 
         case TO_ADD_PKT_CC:
-            TO_LAB_AddPacket((const TO_LAB_AddPacket_t *)MsgPtr);
+            TO_LAB_AddPacket((const TO_LAB_AddPacketCmd_t *)SBBufPtr);
             break;
 
         case TO_REMOVE_PKT_CC:
-            TO_LAB_RemovePacket((const TO_LAB_RemovePacket_t *)MsgPtr);
+            TO_LAB_RemovePacket((const TO_LAB_RemovePacketCmd_t *)SBBufPtr);
             break;
 
         case TO_REMOVE_ALL_PKT_CC:
-            TO_LAB_RemoveAll((const TO_LAB_RemoveAll_t *)MsgPtr);
+            TO_LAB_RemoveAll((const TO_LAB_RemoveAllCmd_t *)SBBufPtr);
             break;
 
         case TO_OUTPUT_ENABLE_CC:
-            TO_LAB_EnableOutput((const TO_LAB_EnableOutput_t *)MsgPtr);
+            TO_LAB_EnableOutput((const TO_LAB_EnableOutputCmd_t *)SBBufPtr);
             break;
 
         default:
@@ -366,7 +369,7 @@ void TO_LAB_exec_local_command(CFE_MSG_Message_t *MsgPtr)
 /* TO_LAB_Noop() -- Noop Handler                                   */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_Noop(const TO_LAB_Noop_t *data)
+int32 TO_LAB_Noop(const TO_LAB_NoopCmd_t *data)
 {
     CFE_EVS_SendEvent(TO_NOOP_INF_EID, CFE_EVS_EventType_INFORMATION, "No-op command");
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
@@ -378,7 +381,7 @@ int32 TO_LAB_Noop(const TO_LAB_Noop_t *data)
 /* TO_LAB_ResetCounters() -- Reset counters                        */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_ResetCounters(const TO_LAB_ResetCounters_t *data)
+int32 TO_LAB_ResetCounters(const TO_LAB_ResetCountersCmd_t *data)
 {
     TO_LAB_Global.HkTlm.Payload.CommandErrorCounter = 0;
     TO_LAB_Global.HkTlm.Payload.CommandCounter      = 0;
@@ -390,16 +393,15 @@ int32 TO_LAB_ResetCounters(const TO_LAB_ResetCounters_t *data)
 /* TO_LAB_SendDataTypes()  -- Output data types                    */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data)
+int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data)
 {
     int16 i;
     char  string_variable[10] = "ABCDEFGHIJ";
 
     /* initialize data types packet */
-    CFE_MSG_Init(&TO_LAB_Global.DataTypesTlm.TlmHeader.BaseMsg, TO_LAB_DATA_TYPES_MID,
-                   sizeof(TO_LAB_Global.DataTypesTlm));
+    CFE_MSG_Init(&TO_LAB_Global.DataTypesTlm.TlmHeader.Msg, TO_LAB_DATA_TYPES_MID, sizeof(TO_LAB_Global.DataTypesTlm));
 
-    CFE_SB_TimeStampMsg(&TO_LAB_Global.DataTypesTlm.TlmHeader.BaseMsg);
+    CFE_SB_TimeStampMsg(&TO_LAB_Global.DataTypesTlm.TlmHeader.Msg);
 
     /* initialize the packet data */
     TO_LAB_Global.DataTypesTlm.Payload.synch = 0x6969;
@@ -430,7 +432,7 @@ int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data)
     for (i = 0; i < 10; i++)
         TO_LAB_Global.DataTypesTlm.Payload.str[i] = string_variable[i];
 
-    CFE_SB_SendMsg(&TO_LAB_Global.DataTypesTlm.TlmHeader.BaseMsg);
+    CFE_SB_TransmitMsg(&TO_LAB_Global.DataTypesTlm.TlmHeader.Msg, true);
 
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
@@ -441,10 +443,10 @@ int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypes_t *data)
 /* TO_LAB_SendHousekeeping() -- HK status                          */
 /* Does not increment CommandCounter                               */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_SendHousekeeping(const CFE_SB_CmdHdr_t *data)
+int32 TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data)
 {
-    CFE_SB_TimeStampMsg(&TO_LAB_Global.HkTlm.TlmHeader.BaseMsg);
-    CFE_SB_SendMsg(&TO_LAB_Global.HkTlm.TlmHeader.BaseMsg);
+    CFE_SB_TimeStampMsg(&TO_LAB_Global.HkTlm.TlmHeader.Msg);
+    CFE_SB_TransmitMsg(&TO_LAB_Global.HkTlm.TlmHeader.Msg, true);
     return CFE_SUCCESS;
 } /* End of TO_LAB_SendHousekeeping() */
 
@@ -473,7 +475,7 @@ void TO_LAB_openTLM(void)
 /* TO_LAB_AddPacket() -- Add packets                               */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_AddPacket(const TO_LAB_AddPacket_t *data)
+int32 TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data)
 {
     const TO_LAB_AddPacket_Payload_t *pCmd = &data->Payload;
     int32                             status;
@@ -497,7 +499,7 @@ int32 TO_LAB_AddPacket(const TO_LAB_AddPacket_t *data)
 /* TO_LAB_RemovePacket() -- Remove Packet                          */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacket_t *data)
+int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data)
 {
     const TO_LAB_RemovePacket_Payload_t *pCmd = &data->Payload;
     int32                                status;
@@ -519,7 +521,7 @@ int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacket_t *data)
 /* TO_LAB_RemoveAll() --  Remove All Packets                       */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data)
+int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data)
 {
     int32 status;
     int   i;
@@ -564,11 +566,11 @@ int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAll_t *data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_LAB_forward_telemetry(void)
 {
-    OS_SockAddr_t      d_addr;
-    int32              status;
-    int32              CFE_SB_status;
-    CFE_MSG_Size_t     size;
-    CFE_MSG_Message_t *PktPtr;
+    OS_SockAddr_t    d_addr;
+    int32            status;
+    int32            CFE_SB_status;
+    size_t           size;
+    CFE_SB_Buffer_t *SBBufPtr;
 
     OS_SocketAddrInit(&d_addr, OS_SocketDomain_INET);
     OS_SocketAddrSetPort(&d_addr, cfgTLM_PORT);
@@ -577,17 +579,17 @@ void TO_LAB_forward_telemetry(void)
 
     do
     {
-        CFE_SB_status = CFE_SB_RcvMsg(&PktPtr, TO_LAB_Global.Tlm_pipe, CFE_SB_POLL);
+        CFE_SB_status = CFE_SB_ReceiveBuffer(&SBBufPtr, TO_LAB_Global.Tlm_pipe, CFE_SB_POLL);
 
         if ((CFE_SB_status == CFE_SUCCESS) && (TO_LAB_Global.suppress_sendto == false))
         {
-            CFE_MSG_GetSize(PktPtr, &size);
+            CFE_MSG_GetSize(&SBBufPtr->Msg, &size);
 
             if (TO_LAB_Global.downlink_on == true)
             {
                 CFE_ES_PerfLogEntry(TO_SOCKET_SEND_PERF_ID);
 
-                status = OS_SocketSendTo(TO_LAB_Global.TLMsockid, PktPtr, size, &d_addr);
+                status = OS_SocketSendTo(TO_LAB_Global.TLMsockid, SBBufPtr, size, &d_addr);
 
                 CFE_ES_PerfLogExit(TO_SOCKET_SEND_PERF_ID);
             }
@@ -602,7 +604,7 @@ void TO_LAB_forward_telemetry(void)
                 TO_LAB_Global.suppress_sendto = true;
             }
         }
-        /* If CFE_SB_status != CFE_SUCCESS, then no packet was received from CFE_SB_RcvMsg() */
+        /* If CFE_SB_status != CFE_SUCCESS, then no packet was received from CFE_SB_ReceiveBuffer() */
     } while (CFE_SB_status == CFE_SUCCESS);
 } /* End of TO_forward_telemetry() */
 
