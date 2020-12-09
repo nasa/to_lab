@@ -43,7 +43,6 @@ typedef struct
 typedef struct
 {
     TO_LAB_Sub_t Subs[CFE_PLATFORM_SB_MAX_MSG_IDS];
-}
-TO_LAB_Subs_t;
+} TO_LAB_Subs_t;
 
 #endif /* to_lab_sub_table_h_ */
