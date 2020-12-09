@@ -10,6 +10,11 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: 2.4.0-rc1+dev17
+
+- Aligns messages according to changes in cFE <https://github.com/nasa/cFE/issues/1009>. Uses the "raw" message cmd/tlm types in definition
+- See <https://github.com/nasa/to_lab/pull/70>
+
 ### Development Build: 2.4.0-rc1+dev13
 
 - Replaces deprecated SB API's with MSG
