@@ -539,19 +539,6 @@ int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data)
         }
     }
 
-    /* remove commands as well */
-    status = CFE_SB_Unsubscribe(TO_LAB_CMD_MID, TO_LAB_Global.Cmd_pipe);
-    if (status != CFE_SUCCESS)
-        CFE_EVS_SendEvent(TO_REMOVECMDTO_ERR_EID, CFE_EVS_EventType_ERROR,
-                          "L%d TO Can't Unsubscribe to cmd stream 0x%x status %i", __LINE__,
-                          (unsigned int)CFE_SB_MsgIdToValue(TO_LAB_CMD_MID), (int)status);
-
-    status = CFE_SB_Unsubscribe(TO_LAB_SEND_HK_MID, TO_LAB_Global.Cmd_pipe);
-    if (status != CFE_SUCCESS)
-        CFE_EVS_SendEvent(TO_REMOVEHKTO_ERR_EID, CFE_EVS_EventType_ERROR,
-                          "L%d TO Can't Unsubscribe to cmd stream 0x%x status %i", __LINE__,
-                          (unsigned int)CFE_SB_MsgIdToValue(TO_LAB_CMD_MID), (int)status);
-
     CFE_EVS_SendEvent(TO_REMOVEALLPKTS_INF_EID, CFE_EVS_EventType_INFORMATION,
                       "L%d TO Unsubscribed to all Commands and Telemetry", __LINE__);
 
