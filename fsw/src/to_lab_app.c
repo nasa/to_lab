@@ -122,8 +122,7 @@ void TO_Lab_AppMain(void)
     }
 
     CFE_ES_ExitApp(RunStatus);
-
-} /* End of TO_Lab_AppMain() */
+}
 
 /*
 ** TO delete callback function.
@@ -245,7 +244,7 @@ int32 TO_LAB_init(void)
                       TO_LAB_VERSION_STRING);
 
     return CFE_SUCCESS;
-} /* End of TO_LAB_init() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -270,7 +269,7 @@ int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutputCmd_t *data)
 
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
-} /* End of TO_LAB_EnableOutput() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -312,7 +311,7 @@ void TO_LAB_process_commands(void)
                 return;
         }
     }
-} /* End of TO_process_commands() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -361,8 +360,7 @@ void TO_LAB_exec_local_command(CFE_SB_Buffer_t *SBBufPtr)
                               (unsigned int)CommandCode);
             ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
     }
-
-} /* End of TO_exec_local_command() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -386,7 +384,7 @@ int32 TO_LAB_ResetCounters(const TO_LAB_ResetCountersCmd_t *data)
     TO_LAB_Global.HkTlm.Payload.CommandErrorCounter = 0;
     TO_LAB_Global.HkTlm.Payload.CommandCounter      = 0;
     return CFE_SUCCESS;
-} /* End of TO_LAB_ResetCounters() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -436,7 +434,7 @@ int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data)
 
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
-} /* End of TO_LAB_SendDataTypes() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -448,7 +446,7 @@ int32 TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data)
     CFE_SB_TimeStampMsg(&TO_LAB_Global.HkTlm.TlmHeader.Msg);
     CFE_SB_TransmitMsg(&TO_LAB_Global.HkTlm.TlmHeader.Msg, true);
     return CFE_SUCCESS;
-} /* End of TO_LAB_SendHousekeeping() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -467,8 +465,7 @@ void TO_LAB_openTLM(void)
     }
 
     /*---------------- Add static arp entries ----------------*/
-
-} /* End of TO_open_TLM() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -492,7 +489,7 @@ int32 TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data)
 
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
-} /* End of TO_AddPkt() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -514,7 +511,7 @@ int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data)
                           (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream));
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
-} /* End of TO_LAB_RemovePacket() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -544,7 +541,7 @@ int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data)
 
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
-} /* End of TO_LAB_RemoveAll() */
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -593,7 +590,7 @@ void TO_LAB_forward_telemetry(void)
         }
         /* If CFE_SB_status != CFE_SUCCESS, then no packet was received from CFE_SB_ReceiveBuffer() */
     } while (CFE_SB_status == CFE_SUCCESS);
-} /* End of TO_forward_telemetry() */
+}
 
 /************************/
 /*  End of File Comment */

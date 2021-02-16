@@ -30,7 +30,7 @@
  */
 
 /* Development Build Macro Definitions */
-#define TO_LAB_BUILD_NUMBER 21 /*!< Development Build: Number of commits since baseline */
+#define TO_LAB_BUILD_NUMBER 32 /*!< Development Build: Number of commits since baseline */
 #define TO_LAB_BUILD_BASELINE \
     "v2.4.0-rc1" /*!< Development Build: git tag that is the base for the current development */
 

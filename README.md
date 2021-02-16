@@ -1,3 +1,6 @@
+![Static Analysis](https://github.com/nasa/to_lab/workflows/Static%20Analysis/badge.svg)
+![Format Check](https://github.com/nasa/to_lab/workflows/Format%20Check/badge.svg)
+
 # Core Flight System : Framework : App : Telemetry Output Lab
 
 This repository contains NASA's Telemetry Output Lab (to_lab), which is a framework component of the Core Flight System.
@@ -9,6 +12,13 @@ to_lab is a simple telemetry downlink application that sends CCSDS telecommand p
 To send telemtry to the "ground" or UDP/IP port, edit the subscription table in the platform include file: fsw/platform_inc/to_lab_sub_table.h. to_lab will subscribe to the packet IDs that are listed in this table and send the telemetry packets it receives to the UDP/IP port.
 
 ## Version History
+
+### Development Build: 2.4.0-rc1+dev32
+
+- Removes end-of-function comments in `to_lab_app.c`
+- Adds static analysis and code format check to continuous integration workflow. Updates workflow status badges in ReadMe
+- Adds CodeQL analysis to continuous integration workflow
+- See <https://github.com/nasa/to_lab/pull/84>
 
 ### Development Build: 2.4.0-rc1+dev21
 
