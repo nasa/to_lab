@@ -122,7 +122,6 @@ void TO_Lab_AppMain(void)
     }
 
     CFE_ES_ExitApp(RunStatus);
-
 }
 
 /*
@@ -361,7 +360,6 @@ void TO_LAB_exec_local_command(CFE_SB_Buffer_t *SBBufPtr)
                               (unsigned int)CommandCode);
             ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
     }
-
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -467,7 +465,6 @@ void TO_LAB_openTLM(void)
     }
 
     /*---------------- Add static arp entries ----------------*/
-
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

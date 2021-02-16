@@ -13,6 +13,13 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: 2.4.0-rc1+dev32
+
+- Removes end-of-function comments in `to_lab_app.c`
+- Adds static analysis and code format check to continuous integration workflow. Updates workflow status badges in ReadMe
+- Adds CodeQL analysis to continuous integration workflow
+- See <https://github.com/nasa/to_lab/pull/84>
+
 ### Development Build: 2.4.0-rc1+dev21
 
 - TO remains command-able after a "remove all subscriptions" command; the command now only removes all subscriptions to the Tlm_pipe
