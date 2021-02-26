@@ -504,8 +504,8 @@ int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data)
     status = CFE_SB_Unsubscribe(pCmd->Stream, TO_LAB_Global.Tlm_pipe);
     if (status != CFE_SUCCESS)
         CFE_EVS_SendEvent(TO_REMOVEPKT_ERR_EID, CFE_EVS_EventType_ERROR,
-                          "L%d TO Can't Unsubscribe to Stream 0x%x on pipe %d, status %i", __LINE__,
-                          (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream), TO_LAB_Global.Tlm_pipe, (int)status);
+                          "L%d TO Can't Unsubscribe to Stream 0x%x, status %i", __LINE__,
+                          (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream), (int)status);
     else
         CFE_EVS_SendEvent(TO_REMOVEPKT_INF_EID, CFE_EVS_EventType_INFORMATION, "L%d TO RemovePkt 0x%x", __LINE__,
                           (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream));
