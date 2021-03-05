@@ -30,13 +30,7 @@
 #ifndef _to_lab_app_h_
 #define _to_lab_app_h_
 
-#include "cfe_error.h"
-#include "cfe_sb.h"
-#include "cfe_time.h"
-#include "cfe_evs.h"
-#include "cfe_sb.h"
-#include "cfe_es.h"
-#include "cfe_tbl.h"
+#include "cfe.h"
 
 #include <errno.h>
 #include <string.h>

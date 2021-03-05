@@ -34,7 +34,6 @@
 #include "to_lab_perfids.h"
 #include "to_lab_version.h"
 #include "to_lab_sub_table.h"
-#include "cfe_msg_api.h"
 
 /*
 ** Global Data Section
