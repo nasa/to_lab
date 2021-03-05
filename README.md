@@ -13,6 +13,12 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: v2.4.0-rc1+dev38
+
+- Fix #85, Remove numeric pipe ID from event printf
+- Fix #87, Add Testing Tools to the Security Policy
+- See <https://github.com/nasa/to_lab/pull/89>
+
 ### Development Build: 2.4.0-rc1+dev32
 
 - Removes end-of-function comments in `to_lab_app.c`
