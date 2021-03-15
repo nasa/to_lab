@@ -13,6 +13,11 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: v2.4.0-rc1+dev41
+
+-  Use `cfe.h` header file
+- See <https://github.com/nasa/to_lab/pull/91>
+
 ### Development Build: v2.4.0-rc1+dev38
 
 - Fix #85, Remove numeric pipe ID from event printf
