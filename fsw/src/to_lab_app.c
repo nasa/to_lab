@@ -151,7 +151,6 @@ int32 TO_LAB_init(void)
     char   ToTlmPipeName[16];
     uint16 ToTlmPipeDepth;
 
-    CFE_ES_RegisterApp();
     TO_LAB_Global.downlink_on = false;
     PipeDepth                 = TO_LAB_CMD_PIPE_DEPTH;
     strcpy(PipeName, "TO_LAB_CMD_PIPE");
