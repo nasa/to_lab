@@ -13,6 +13,11 @@ To send telemtry to the "ground" or UDP/IP port, edit the subscription table in 
 
 ## Version History
 
+### Development Build: v2.4.0-rc1+dev47
+
+- Removes app registration call, `CFE_ES_RegisterApp()` since applications do not need to register themselves.
+- See <https://github.com/nasa/to_lab/pull/97>
+
 ### Development Build: v2.4.0-rc1+dev41
 
 -  Use `cfe.h` header file
