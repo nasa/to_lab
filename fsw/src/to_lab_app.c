@@ -582,7 +582,7 @@ void TO_LAB_forward_telemetry(void)
             if (status < 0)
             {
                 CFE_EVS_SendEvent(TO_TLMOUTSTOP_ERR_EID, CFE_EVS_EventType_ERROR,
-                                  "L%d TO sendto error %d. Tlm output supressed\n", __LINE__, (int)status);
+                                  "L%d TO sendto error %d. Tlm output suppressed\n", __LINE__, (int)status);
                 TO_LAB_Global.suppress_sendto = true;
             }
         }
