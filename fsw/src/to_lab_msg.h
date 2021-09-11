@@ -134,7 +134,7 @@ typedef struct
 typedef struct
 {
     CFE_MSG_CommandHeader_t       CmdHeader; /**< \brief Command header */
-    TO_LAB_RemovePacket_Payload_t Payload;   /**< \brief Command paylod */
+    TO_LAB_RemovePacket_Payload_t Payload;   /**< \brief Command payload */
 } TO_LAB_RemovePacketCmd_t;
 
 /******************************************************************************/

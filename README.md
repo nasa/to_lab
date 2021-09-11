@@ -9,7 +9,7 @@ This lab application is a non-flight utility to downlink telemetry from the cFS 
 
 to_lab is a simple telemetry downlink application that sends CCSDS telecommand packets over a UDP/IP port. The UDP port and IP address are specified in the "Enable Telemetry" command. It does not provide a full CCSDS Telecommand stack implementation.
 
-To send telemtry to the "ground" or UDP/IP port, edit the subscription table in the platform include file: fsw/platform_inc/to_lab_sub_table.h. to_lab will subscribe to the packet IDs that are listed in this table and send the telemetry packets it receives to the UDP/IP port.
+To send telemetry to the "ground" or UDP/IP port, edit the subscription table in the platform include file: fsw/platform_inc/to_lab_sub_table.h. to_lab will subscribe to the packet IDs that are listed in this table and send the telemetry packets it receives to the UDP/IP port.
 
 ## Version History
 
