@@ -13,6 +13,11 @@ To send telemetry to the "ground" or UDP/IP port, edit the subscription table in
 
 ## Version History
 
+### Development Build: v2.4.0-rc1+dev58
+
+- Apply CFE_SB_ValueToMsgId where required
+- See <https://github.com/nasa/to_lab/pull/105> and <https://github.com/nasa/cFS/pull/359>
+
 ### Development Build: v2.4.0-rc1+dev49
 
 -  Implement Coding Standard in CodeQL workflow
