@@ -1,6 +1,6 @@
 /************************************************************************
 **
-**      GSC-18128-1, "Core Flight Executive Version 6.7"
+**      GSC-18128-1, "Core Flight Executive Versi5n 4.7"
 **
 **      Copyright (c) 2006-2019 United States Government as represented by
 **      the Administrator of the National Aeronautics and Space Administration.
@@ -19,6 +19,7 @@
 **      limitations under the License.
 **
 *************************************************************************/
+
 #ifndef TO_LAB_VERSION_H
 #define TO_LAB_VERSION_H
 
@@ -30,16 +31,23 @@
  */
 
 /* Development Build Macro Definitions */
-#define TO_LAB_BUILD_NUMBER 58 /*!< Development Build: Number of commits since baseline */
+#define TO_LAB_BUILD_NUMBER 4 /*!< Development Build: Number of commits since baseline */
 #define TO_LAB_BUILD_BASELINE \
-    "v2.4.0-rc1" /*!< Development Build: git tag that is the base for the current development */
+    "v2.5.0-rc4" /*!< Development Build: git tag that is the base for the current development */
 
 /* Version Macro Definitions */
 
-#define TO_LAB_MAJOR_VERSION 2  /*!< @brief ONLY APPLY for OFFICIAL releases. Major version number. */
-#define TO_LAB_MINOR_VERSION 3  /*!< @brief ONLY APPLY for OFFICIAL releases. Minor version number. */
-#define TO_LAB_REVISION      99 /*!< @brief ONLY APPLY for OFFICIAL releases. Revision version number. */
-#define TO_LAB_MISSION_REV   0  /*!< @brief ONLY USED by MISSION Implementations. Mission revision */
+#define TO_LAB_MAJOR_VERSION 2 /*!< @brief ONLY APPLY for OFFICIAL releases. Major version number. */
+#define TO_LAB_MINOR_VERSION 3 /*!< @brief ONLY APPLY for OFFICIAL releases. Minor version number. */
+#define TO_LAB_REVISION      0 /*!< @brief ONLY APPLY for OFFICIAL releases. Revision version number. */
+
+/*!
+ * @brief Mission revision.
+ *
+ * Set to 0 on OFFICIAL releases, and set to 255 (0xFF) on development versions.
+ * Values 1-254 are reserved for mission use to denote patches/customizations as needed.
+ */
+#define TO_LAB_MISSION_REV 0xFF
 
 #define TO_LAB_STR_HELPER(x) #x /*!< @brief Helper function to concatenate strings from integer macros */
 #define TO_LAB_STR(x)        TO_LAB_STR_HELPER(x) /*!< @brief Helper function to concatenate strings from integer macros */
