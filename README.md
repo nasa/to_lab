@@ -13,6 +13,12 @@ To send telemetry to the "ground" or UDP/IP port, edit the subscription table in
 
 ## Version History
 
+### Development Build: v2.5.0-rc4+dev4
+
+- Use CFE_MSG_PTR conversion macro
+- Set new baseline for cFS-Caelum-rc4: v2.5.0-rc4
+- See <https://github.com/nasa/to_lab/pull/112> and <https://github.com/nasa/cFS/pull/390>
+
 ### Development Build: v2.4.0-rc1+dev58
 
 - Apply CFE_SB_ValueToMsgId where required

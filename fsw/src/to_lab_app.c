@@ -165,7 +165,7 @@ int32 TO_LAB_init(void)
     /*
     ** Initialize housekeeping packet (clear user data area)...
     */
-    CFE_MSG_Init(&TO_LAB_Global.HkTlm.TlmHeader.Msg, CFE_SB_ValueToMsgId(TO_LAB_HK_TLM_MID),
+    CFE_MSG_Init(CFE_MSG_PTR(TO_LAB_Global.HkTlm.TelemetryHeader), CFE_SB_ValueToMsgId(TO_LAB_HK_TLM_MID),
                  sizeof(TO_LAB_Global.HkTlm));
 
     status = CFE_TBL_Register(&TO_SubTblHandle, "TO_LAB_Subs", sizeof(*TO_LAB_Subs), CFE_TBL_OPT_DEFAULT, NULL);
@@ -396,10 +396,10 @@ int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data)
     char  string_variable[10] = "ABCDEFGHIJ";
 
     /* initialize data types packet */
-    CFE_MSG_Init(&TO_LAB_Global.DataTypesTlm.TlmHeader.Msg, CFE_SB_ValueToMsgId(TO_LAB_DATA_TYPES_MID),
+    CFE_MSG_Init(CFE_MSG_PTR(TO_LAB_Global.DataTypesTlm.TelemetryHeader), CFE_SB_ValueToMsgId(TO_LAB_DATA_TYPES_MID),
                  sizeof(TO_LAB_Global.DataTypesTlm));
 
-    CFE_SB_TimeStampMsg(&TO_LAB_Global.DataTypesTlm.TlmHeader.Msg);
+    CFE_SB_TimeStampMsg(CFE_MSG_PTR(TO_LAB_Global.DataTypesTlm.TelemetryHeader));
 
     /* initialize the packet data */
     TO_LAB_Global.DataTypesTlm.Payload.synch = 0x6969;
@@ -430,7 +430,7 @@ int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data)
     for (i = 0; i < 10; i++)
         TO_LAB_Global.DataTypesTlm.Payload.str[i] = string_variable[i];
 
-    CFE_SB_TransmitMsg(&TO_LAB_Global.DataTypesTlm.TlmHeader.Msg, true);
+    CFE_SB_TransmitMsg(CFE_MSG_PTR(TO_LAB_Global.DataTypesTlm.TelemetryHeader), true);
 
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
@@ -443,8 +443,8 @@ int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int32 TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data)
 {
-    CFE_SB_TimeStampMsg(&TO_LAB_Global.HkTlm.TlmHeader.Msg);
-    CFE_SB_TransmitMsg(&TO_LAB_Global.HkTlm.TlmHeader.Msg, true);
+    CFE_SB_TimeStampMsg(CFE_MSG_PTR(TO_LAB_Global.HkTlm.TelemetryHeader));
+    CFE_SB_TransmitMsg(CFE_MSG_PTR(TO_LAB_Global.HkTlm.TelemetryHeader), true);
     return CFE_SUCCESS;
 }
 

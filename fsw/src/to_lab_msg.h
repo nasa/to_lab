@@ -48,8 +48,8 @@ typedef struct
 
 typedef struct
 {
-    CFE_MSG_TelemetryHeader_t TlmHeader; /**< \brief Telemetry header */
-    TO_LAB_HkTlm_Payload_t    Payload;   /**< \brief Telemetry payload */
+    CFE_MSG_TelemetryHeader_t TelemetryHeader; /**< \brief Telemetry header */
+    TO_LAB_HkTlm_Payload_t    Payload;         /**< \brief Telemetry payload */
 } TO_LAB_HkTlm_t;
 
 /******************************************************************************/
@@ -78,8 +78,8 @@ typedef struct
 
 typedef struct
 {
-    CFE_MSG_TelemetryHeader_t  TlmHeader; /**< \brief Telemetry header */
-    TO_LAB_DataTypes_Payload_t Payload;   /**< \brief Telemetry payload */
+    CFE_MSG_TelemetryHeader_t  TelemetryHeader; /**< \brief Telemetry header */
+    TO_LAB_DataTypes_Payload_t Payload;         /**< \brief Telemetry payload */
 } TO_LAB_DataTypesTlm_t;
 
 /******************************************************************************/
