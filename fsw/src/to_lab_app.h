@@ -17,18 +17,15 @@
 **      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 **      See the License for the specific language governing permissions and
 **      limitations under the License.
-**
-** File: to_lab_app.h
-**
-** Purpose:
-**  Define TO Lab Application header file
-**
-** Notes:
-**
-*************************************************************************/
+*/
 
-#ifndef _to_lab_app_h_
-#define _to_lab_app_h_
+/**
+ * @file
+ *   Define TO Lab Application header file
+ */
+
+#ifndef TO_LAB_APP_H
+#define TO_LAB_APP_H
 
 #include "cfe.h"
 
@@ -67,4 +64,4 @@ void TO_Lab_AppMain(void);
 
 /******************************************************************************/
 
-#endif /* _to_lab_app_h_ */
+#endif

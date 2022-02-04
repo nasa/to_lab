@@ -20,15 +20,12 @@
 **
 *************************************************************************/
 
+/**
+ * @file
+ *  The TO Lab Application header file containing version information
+ */
 #ifndef TO_LAB_VERSION_H
 #define TO_LAB_VERSION_H
-
-/*! @file to_lab_version.h
- * @brief Purpose:
- *
- *  The TO Lab Application header file containing version information
- *
- */
 
 /* Development Build Macro Definitions */
 #define TO_LAB_BUILD_NUMBER 4 /*!< Development Build: Number of commits since baseline */
@@ -66,8 +63,4 @@
     " TO Lab DEVELOPMENT BUILD " TO_LAB_VERSION \
     ", Last Official Release: v2.3.0" /* For full support please use this version */
 
-#endif /* TO_LAB_VERSION_H */
-
-/************************/
-/*  End of File Comment */
-/************************/
+#endif

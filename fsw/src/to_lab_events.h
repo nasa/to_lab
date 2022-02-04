@@ -17,17 +17,14 @@
 **      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 **      See the License for the specific language governing permissions and
 **      limitations under the License.
-**
-** File: to_lab_events.h
-**
-** Purpose:
-**  Define TO Lab Event messages
-**
-** Notes:
-**
-*************************************************************************/
-#ifndef _to_lab_events_h_
-#define _to_lab_events_h_
+*/
+
+/**
+ * @file
+ *   Define TO Lab Event messages
+ */
+#ifndef TO_LAB_EVENTS_H
+#define TO_LAB_EVENTS_H
 
 /*****************************************************************************/
 
@@ -54,4 +51,4 @@
 
 /******************************************************************************/
 
-#endif /* _to_lab_events_h_ */
+#endif
