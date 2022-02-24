@@ -17,17 +17,14 @@
 **      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 **      See the License for the specific language governing permissions and
 **      limitations under the License.
-**
-** File: to_lab_sub_table.h
-**
-** Purpose:
-**  Define TO Lab CPU specific subscription table
-**
-** Notes:
-**
-*************************************************************************/
-#ifndef to_lab_sub_table_h_
-#define to_lab_sub_table_h_
+*/
+
+/**
+ * @file
+ *   Define TO Lab CPU specific subscription table
+ */
+#ifndef TO_LAB_SUB_TABLE_H
+#define TO_LAB_SUB_TABLE_H
 
 #include "cfe_msgids.h"
 #include "cfe_platform_cfg.h"
@@ -45,4 +42,4 @@ typedef struct
     TO_LAB_Sub_t Subs[CFE_PLATFORM_SB_MAX_MSG_IDS];
 } TO_LAB_Subs_t;
 
-#endif /* to_lab_sub_table_h_ */
+#endif

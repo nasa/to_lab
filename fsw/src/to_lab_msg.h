@@ -17,17 +17,14 @@
 **      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 **      See the License for the specific language governing permissions and
 **      limitations under the License.
-**
-** File: to_lab_msg.h
-**
-** Purpose:
-**  Define TO Lab Messages and info
-**
-** Notes:
-**
-*************************************************************************/
-#ifndef _to_lab_msg_h_
-#define _to_lab_msg_h_
+*/
+
+/**
+ * @file
+ *   Define TO Lab Messages and info
+ */
+#ifndef TO_LAB_MSG_H
+#define TO_LAB_MSG_H
 
 #define TO_NOP_CC             0 /*  no-op command     */
 #define TO_RESET_STATUS_CC    1 /*  reset status      */
@@ -152,8 +149,4 @@ typedef struct
 
 /******************************************************************************/
 
-#endif /* _to_lab_msg_h_ */
-
-/************************/
-/*  End of File Comment */
-/************************/
+#endif

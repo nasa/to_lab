@@ -17,23 +17,16 @@
 **      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 **      See the License for the specific language governing permissions and
 **      limitations under the License.
-**
-** File: to_lab_perfids.h
-**
-** Purpose:
-**  Define TO Lab Performance IDs
-**
-** Notes:
-**
-*************************************************************************/
-#ifndef _to_lab_perfids_h_
-#define _to_lab_perfids_h_
+*/
+
+/**
+ * @file
+ *   Define TO Lab Performance IDs
+ */
+#ifndef TO_LAB_PERFIDS_H
+#define TO_LAB_PERFIDS_H
 
 #define TO_MAIN_TASK_PERF_ID   34
 #define TO_SOCKET_SEND_PERF_ID 35
 
-#endif /* _to_lab_perfids_h_ */
-
-/************************/
-/*  End of File Comment */
-/************************/
+#endif
