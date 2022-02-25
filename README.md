@@ -13,6 +13,11 @@ To send telemetry to the "ground" or UDP/IP port, edit the subscription table in
 
 ## Version History
 
+### Development Build: v2.5.0-rc4+dev9
+
+- Apply header guard standard
+- See <https://github.com/nasa/cFS/pull/432>
+
 ### Development Build: v2.5.0-rc4+dev4
 
 - Use CFE_MSG_PTR conversion macro
