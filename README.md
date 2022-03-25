@@ -13,6 +13,12 @@ To send telemetry to the "ground" or UDP/IP port, edit the subscription table in
 
 ## Version History
 
+### Development Build: v2.5.0-rc4+dev16
+
+- Update Copyright Headers
+- Standardize version.h 
+- See <https://github.com/nasa/to_lab/pull/119> and <https://github.com/nasa/cFS/445>
+
 ### Development Build: v2.5.0-rc4+dev9
 
 - Apply header guard standard
