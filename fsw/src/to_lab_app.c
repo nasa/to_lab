@@ -49,14 +49,6 @@ TO_LAB_GlobalData_t TO_LAB_Global;
 
 TO_LAB_Subs_t *  TO_LAB_Subs;
 CFE_TBL_Handle_t TO_SubTblHandle;
-/*
-** Event Filter Table
-*/
-static CFE_EVS_BinFilter_t CFE_TO_EVS_Filters[] = {/* Event ID    mask */
-                                                   {TO_INIT_INF_EID, 0x0000},       {TO_CRCMDPIPE_ERR_EID, 0x0000},
-                                                   {TO_SUBSCRIBE_ERR_EID, 0x0000},  {TO_TLMOUTSOCKET_ERR_EID, 0x0000},
-                                                   {TO_TLMOUTSTOP_ERR_EID, 0x0000}, {TO_MSGID_ERR_EID, 0x0000},
-                                                   {TO_FNCODE_ERR_EID, 0x0000},     {TO_NOOP_INF_EID, 0x0000}};
 
 /*
 ** Prototypes Section
@@ -152,10 +144,9 @@ int32 TO_LAB_init(void)
     strcpy(ToTlmPipeName, "TO_LAB_TLM_PIPE");
 
     /*
-    ** Register event filter table...
+    ** Register with EVS
     */
-    CFE_EVS_Register(CFE_TO_EVS_Filters, sizeof(CFE_TO_EVS_Filters) / sizeof(CFE_EVS_BinFilter_t),
-                     CFE_EVS_EventFilter_BINARY);
+    CFE_EVS_Register(NULL, 0, CFE_EVS_EventFilter_BINARY);
     /*
     ** Initialize housekeeping packet (clear user data area)...
     */
