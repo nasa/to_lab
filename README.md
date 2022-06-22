@@ -13,6 +13,13 @@ To send telemetry to the "ground" or UDP/IP port, edit the subscription table in
 
 ## Version History
 
+### Development Build: v2.5.0-rc4+dev21
+
+- Remove registration of empty EVS filters
+- Update codeql workflow for reusable updates
+- See <https://github.com/nasa/cFS/pull/505>
+
+
 ### Development Build: v2.5.0-rc4+dev16
 
 - Update Copyright Headers

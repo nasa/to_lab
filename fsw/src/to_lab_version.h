@@ -24,7 +24,7 @@
 #define TO_LAB_VERSION_H
 
 /* Development Build Macro Definitions */
-#define TO_LAB_BUILD_NUMBER 16 /*!< Development Build: Number of commits since baseline */
+#define TO_LAB_BUILD_NUMBER 21 /*!< Development Build: Number of commits since baseline */
 #define TO_LAB_BUILD_BASELINE \
     "v2.5.0-rc4" /*!< Development Build: git tag that is the base for the current development */
 
