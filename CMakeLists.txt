@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6.4)
+cmake_minimum_required(VERSION 3.5)
 project(CFS_TO_LAB C)
 
 # Include source directory for table use
