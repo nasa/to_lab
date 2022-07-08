@@ -13,6 +13,10 @@ To send telemetry to the "ground" or UDP/IP port, edit the subscription table in
 
 ## Version History
 
+### Development Build: v2.5.0-rc4+dev23
+- Update cmake mimimum required to something more recent
+- See <https://github.com/nasa/to_lab/pull/124>
+
 ### Development Build: v2.5.0-rc4+dev21
 
 - Remove registration of empty EVS filters
