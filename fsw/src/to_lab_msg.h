@@ -98,7 +98,6 @@ typedef TO_LAB_NoArgsCmd_t TO_LAB_SendDataTypesCmd_t;
 typedef struct
 {
     CFE_SB_MsgId_t Stream;
-    uint16         PktSize;
     CFE_SB_Qos_t   Flags;
     uint8          BufLimit;
 } TO_LAB_AddPacket_Payload_t;
