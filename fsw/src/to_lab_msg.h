@@ -23,13 +23,13 @@
 #ifndef TO_LAB_MSG_H
 #define TO_LAB_MSG_H
 
-#define TO_NOP_CC             0 /*  no-op command     */
-#define TO_RESET_STATUS_CC    1 /*  reset status      */
-#define TO_ADD_PKT_CC         2 /*  add packet        */
-#define TO_SEND_DATA_TYPES_CC 3 /*  send data types   */
-#define TO_REMOVE_PKT_CC      4 /*  remove packet     */
-#define TO_REMOVE_ALL_PKT_CC  5 /*  remove all packet */
-#define TO_OUTPUT_ENABLE_CC   6 /*  output enable     */
+#define TO_LAB_NOOP_CC            0 /*  no-op command     */
+#define TO_LAB_RESET_STATUS_CC    1 /*  reset status      */
+#define TO_LAB_ADD_PKT_CC         2 /*  add packet        */
+#define TO_LAB_SEND_DATA_TYPES_CC 3 /*  send data types   */
+#define TO_LAB_REMOVE_PKT_CC      4 /*  remove packet     */
+#define TO_LAB_REMOVE_ALL_PKT_CC  5 /*  remove all packet */
+#define TO_LAB_OUTPUT_ENABLE_CC   6 /*  output enable     */
 
 /******************************************************************************/
 
@@ -98,7 +98,6 @@ typedef TO_LAB_NoArgsCmd_t TO_LAB_SendDataTypesCmd_t;
 typedef struct
 {
     CFE_SB_MsgId_t Stream;
-    uint16         PktSize;
     CFE_SB_Qos_t   Flags;
     uint8          BufLimit;
 } TO_LAB_AddPacket_Payload_t;
@@ -116,7 +115,7 @@ typedef struct
     CFE_SB_MsgId_t Stream;
     CFE_SB_Qos_t   Flags;
     uint16         BufLimit;
-} TO_subscription_t;
+} TO_LAB_subscription_t;
 
 /******************************************************************************/
 
