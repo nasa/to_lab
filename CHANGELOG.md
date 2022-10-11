@@ -1,5 +1,11 @@
 # Changelog
 
+## Development Build: v2.5.0-rc4+dev31
+- Remove unused PktSize variable.
+- Standardize naming of TO_LAB functions/macros etc.
+- Create CHANGELOG.md
+- See <https://github.com/nasa/to_lab/pull/127>, <https://github.com/nasa/to_lab/pull/126>, and <https://github.com/nasa/to_lab/pull/129>
+
 ## Development Build: v2.5.0-rc4+dev23
 - Update cmake mimimum required to something more recent
 - See <https://github.com/nasa/to_lab/pull/124>
