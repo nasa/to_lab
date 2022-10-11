@@ -35,8 +35,8 @@
 
 /*****************************************************************************/
 
-#define TO_TASK_MSEC 500 /* run at 2 Hz */
-#define TO_UNUSED    CFE_SB_MSGID_RESERVED
+#define TO_LAB_TASK_MSEC 500 /* run at 2 Hz */
+#define TO_LAB_UNUSED    CFE_SB_MSGID_RESERVED
 
 /**
  * Depth of pipe for commands to the TO_LAB application itself
@@ -57,7 +57,7 @@
 /*
 ** Prototypes Section
 */
-void TO_Lab_AppMain(void);
+void TO_LAB_AppMain(void);
 
 /******************************************************************************/
 
