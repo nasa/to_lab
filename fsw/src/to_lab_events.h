@@ -29,13 +29,13 @@
 #define TO_LAB_EVM_RESERVED 0
 
 #define TO_LAB_INIT_INF_EID          1
-#define TO_LAB_CRCMDPIPE_ERR_EID     2
+#define TO_LAB_CR_PIPE_ERR_EID       2
 #define TO_LAB_TLMOUTENA_INF_EID     3
 #define TO_LAB_SUBSCRIBE_ERR_EID     4
 #define TO_LAB_TLMPIPE_ERR_EID       5
 #define TO_LAB_TLMOUTSOCKET_ERR_EID  6
 #define TO_LAB_TLMOUTSTOP_ERR_EID    7
-#define TO_LAB_MSGID_ERR_EID         8
+#define TO_LAB_MID_ERR_EID           8
 #define TO_LAB_FNCODE_ERR_EID        9
 #define TO_LAB_ADDPKT_ERR_EID        10
 #define TO_LAB_REMOVEPKT_ERR_EID     11
