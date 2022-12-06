@@ -4,10 +4,9 @@ project(CFS_TO_LAB C)
 # Include source directory for table use
 include_directories(fsw/src)
 
-include_directories(fsw/mission_inc)
-include_directories(fsw/platform_inc)
-include_directories(${ci_lab_MISSION_DIR}/fsw/platform_inc)
-include_directories(${sample_app_MISSION_DIR}/fsw/platform_inc)
+include_directories(fsw/inc)
+include_directories(${ci_lab_MISSION_DIR}/fsw/inc)
+include_directories(${sample_app_MISSION_DIR}/fsw/inc)
 
 aux_source_directory(fsw/src APP_SRC_FILES)
 
