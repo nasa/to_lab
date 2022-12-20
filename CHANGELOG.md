@@ -1,5 +1,9 @@
 # Changelog
 
+## Development Build: v2.5.0-rc4+dev35
+- Adds format changes in to_lab_app.c
+- See <https://github.com/nasa/to_lab/pull/142>
+
 ## Development Build: v2.5.0-rc4+dev31
 - Remove unused PktSize variable.
 - Standardize naming of TO_LAB functions/macros etc.
