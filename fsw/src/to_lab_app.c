@@ -157,9 +157,8 @@ int32 TO_LAB_init(void)
 
     if (status != CFE_SUCCESS)
     {
-        CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't register table status %i", __LINE__,
-                          (int)status);
-        return status;
+        CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't register table status %i",
+                          __LINE__, (int)status);
     }
 
     status = CFE_TBL_Load(TO_SubTblHandle, CFE_TBL_SRC_FILE, "/cf/to_lab_sub.tbl");
@@ -175,8 +174,8 @@ int32 TO_LAB_init(void)
 
     if (status != CFE_SUCCESS && status != CFE_TBL_INFO_UPDATED)
     {
-        CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't get table addr status %i", __LINE__,
-                          (int)status);
+        CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't get table addr status %i",
+                          __LINE__, (int)status);
         return status;
     }
 
@@ -224,8 +223,8 @@ int32 TO_LAB_init(void)
     */
     OS_TaskInstallDeleteHandler(&TO_LAB_delete_callback);
 
-    CFE_EVS_SendEvent(TO_LAB_INIT_INF_EID, CFE_EVS_EventType_INFORMATION, "TO Lab Initialized.%s, Awaiting enable command.",
-                      TO_LAB_VERSION_STRING);
+    CFE_EVS_SendEvent(TO_LAB_INIT_INF_EID, CFE_EVS_EventType_INFORMATION,
+                      "TO Lab Initialized.%s, Awaiting enable command.", TO_LAB_VERSION_STRING);
 
     return CFE_SUCCESS;
 }
@@ -285,9 +284,9 @@ void TO_LAB_process_commands(void)
                         break;
 
                     default:
-                        CFE_EVS_SendEvent(TO_LAB_MSGID_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO: Invalid Msg ID Rcvd 0x%x",
-                                          __LINE__, (unsigned int)CFE_SB_MsgIdToValue(MsgId));
-                        break;
+                        CFE_EVS_SendEvent(TO_LAB_MSGID_ERR_EID, CFE_EVS_EventType_ERROR,
+                                          "L%d TO: Invalid Msg ID Rcvd 0x%x", __LINE__,
+                                          (unsigned int)CFE_SB_MsgIdToValue(MsgId));
                 }
                 break;
             default:
@@ -445,8 +444,8 @@ void TO_LAB_openTLM(void)
     status = OS_SocketOpen(&TO_LAB_Global.TLMsockid, OS_SocketDomain_INET, OS_SocketType_DATAGRAM);
     if (status != OS_SUCCESS)
     {
-        CFE_EVS_SendEvent(TO_LAB_TLMOUTSOCKET_ERR_EID, CFE_EVS_EventType_ERROR, "L%d, TO TLM socket error: %d", __LINE__,
-                          (int)status);
+        CFE_EVS_SendEvent(TO_LAB_TLMOUTSOCKET_ERR_EID, CFE_EVS_EventType_ERROR, "L%d, TO TLM socket error: %d",
+                          __LINE__, (int)status);
     }
 
     /*---------------- Add static arp entries ----------------*/
@@ -465,11 +464,12 @@ int32 TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data)
     status = CFE_SB_SubscribeEx(pCmd->Stream, TO_LAB_Global.Tlm_pipe, pCmd->Flags, pCmd->BufLimit);
 
     if (status != CFE_SUCCESS)
-        CFE_EVS_SendEvent(TO_LAB_ADDPKT_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't subscribe 0x%x status %i", __LINE__,
-                          (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream), (int)status);
+        CFE_EVS_SendEvent(TO_LAB_ADDPKT_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't subscribe 0x%x status %i",
+                          __LINE__, (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream), (int)status);
     else
-        CFE_EVS_SendEvent(TO_LAB_ADDPKT_INF_EID, CFE_EVS_EventType_INFORMATION, "L%d TO AddPkt 0x%x, QoS %d.%d, limit %d",
-                          __LINE__, (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream), pCmd->Flags.Priority,
+        CFE_EVS_SendEvent(TO_LAB_ADDPKT_INF_EID, CFE_EVS_EventType_INFORMATION,
+                          "L%d TO AddPkt 0x%x, QoS %d.%d, limit %d", __LINE__,
+                          (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream), pCmd->Flags.Priority,
                           pCmd->Flags.Reliability, pCmd->BufLimit);
 
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
