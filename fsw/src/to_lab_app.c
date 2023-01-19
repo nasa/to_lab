@@ -159,6 +159,7 @@ int32 TO_LAB_init(void)
     {
         CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't register table status %i",
                           __LINE__, (int)status);
+        return status;
     }
 
     status = CFE_TBL_Load(TO_SubTblHandle, CFE_TBL_SRC_FILE, "/cf/to_lab_sub.tbl");
@@ -287,6 +288,7 @@ void TO_LAB_process_commands(void)
                         CFE_EVS_SendEvent(TO_LAB_MSGID_ERR_EID, CFE_EVS_EventType_ERROR,
                                           "L%d TO: Invalid Msg ID Rcvd 0x%x", __LINE__,
                                           (unsigned int)CFE_SB_MsgIdToValue(MsgId));
+                        break;
                 }
                 break;
             default:
