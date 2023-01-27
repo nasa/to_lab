@@ -207,16 +207,16 @@ int32 TO_LAB_init(void)
             /* Only process until invalid MsgId is found*/
             break;
         }
-        else if (CFE_SB_IsValidMsgId(TO_LAB_Subs->Subs[i].Stream))
-        {
-            status = CFE_SB_SubscribeEx(TO_LAB_Subs->Subs[i].Stream, TO_LAB_Global.Tlm_pipe, TO_LAB_Subs->Subs[i].Flags,
-                                        TO_LAB_Subs->Subs[i].BufLimit);
-        }
+
+        status = CFE_SB_SubscribeEx(TO_LAB_Subs->Subs[i].Stream, TO_LAB_Global.Tlm_pipe, TO_LAB_Subs->Subs[i].Flags,
+                                    TO_LAB_Subs->Subs[i].BufLimit);
 
         if (status != CFE_SUCCESS)
+        {
             CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID, CFE_EVS_EventType_ERROR,
                               "L%d TO Can't subscribe to stream 0x%x status %i", __LINE__,
                               (unsigned int)CFE_SB_MsgIdToValue(TO_LAB_Subs->Subs[i].Stream), (int)status);
+        }
     }
 
     /*
