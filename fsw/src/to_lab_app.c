@@ -146,7 +146,13 @@ int32 TO_LAB_init(void)
     /*
     ** Register with EVS
     */
-    CFE_EVS_Register(NULL, 0, CFE_EVS_EventFilter_BINARY);
+    status = CFE_EVS_Register(NULL, 0, CFE_EVS_EventFilter_BINARY);
+    if (status != CFE_SUCCESS)
+    {
+        CFE_ES_WriteToSysLog("TO_LAB: Error registering for Event Services, RC = 0x%08X\n", (unsigned int)status);
+        return status;
+    }
+
     /*
     ** Initialize housekeeping packet (clear user data area)...
     */
