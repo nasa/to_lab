@@ -28,37 +28,39 @@
 /*
 ** Add the proper include file for the message IDs below
 */
-
-/*
-** Common CFS app includes below are commented out
-*/
 #include "to_lab_msgids.h"
+
+#ifdef HAVE_CI_LAB
 #include "ci_lab_msgids.h"
+#endif
 
+#ifdef HAVE_SAMPLE_APP
 #include "sample_app_msgids.h"
+#endif
 
-#if 0
+#ifdef HAVE_HS_APP
 #include "hs_msgids.h"
+#endif
+
+#ifdef HAVE_FM_APP
 #include "fm_msgids.h"
+#endif
+
+#ifdef HAVE_SC_APP
 #include "sc_msgids.h"
+#endif
+
+#ifdef HAVE_DS_APP
 #include "ds_msgids.h"
+#endif
+
+#ifdef HAVE_LC_APP
 #include "lc_msgids.h"
 #endif
 
 TO_LAB_Subs_t TO_LAB_Subs = {.Subs = {/* CFS App Subscriptions */
                                       {CFE_SB_MSGID_WRAP_VALUE(TO_LAB_HK_TLM_MID), {0, 0}, 4},
                                       {CFE_SB_MSGID_WRAP_VALUE(TO_LAB_DATA_TYPES_MID), {0, 0}, 4},
-                                      {CFE_SB_MSGID_WRAP_VALUE(CI_LAB_HK_TLM_MID), {0, 0}, 4},
-                                      {CFE_SB_MSGID_WRAP_VALUE(SAMPLE_APP_HK_TLM_MID), {0, 0}, 4},
-
-#if 0
-        /* Add these if needed */
-        {CFE_SB_MSGID_WRAP_VALUE(HS_HK_TLM_MID), {0,0}, 4},
-        {CFE_SB_MSGID_WRAP_VALUE(FM_HK_TLM_MID), {0,0}, 4},
-        {CFE_SB_MSGID_WRAP_VALUE(SC_HK_TLM_MID), {0,0}, 4},
-        {CFE_SB_MSGID_WRAP_VALUE(DS_HK_TLM_MID), {0,0}, 4},
-        {CFE_SB_MSGID_WRAP_VALUE(LC_HK_TLM_MID), {0,0}, 4},
-#endif
 
                                       /* cFE Core subscriptions */
                                       {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_HK_TLM_MID), {0, 0}, 4},
@@ -73,6 +75,28 @@ TO_LAB_Subs_t TO_LAB_Subs = {.Subs = {/* CFS App Subscriptions */
 
                                       {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_APP_TLM_MID), {0, 0}, 4},
                                       {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_MEMSTATS_TLM_MID), {0, 0}, 4},
+
+#ifdef HAVE_CI_LAB
+                                      {CFE_SB_MSGID_WRAP_VALUE(CI_LAB_HK_TLM_MID), {0, 0}, 4},
+#endif
+#ifdef HAVE_SAMPLE_APP
+                                      {CFE_SB_MSGID_WRAP_VALUE(SAMPLE_APP_HK_TLM_MID), {0, 0}, 4},
+#endif
+#ifdef HAVE_HS_APP
+                                      {CFE_SB_MSGID_WRAP_VALUE(HS_HK_TLM_MID), {0, 0}, 4},
+#endif
+#ifdef HAVE_HS_APP
+                                      {CFE_SB_MSGID_WRAP_VALUE(FM_HK_TLM_MID), {0, 0}, 4},
+#endif
+#ifdef HAVE_HS_APP
+                                      {CFE_SB_MSGID_WRAP_VALUE(SC_HK_TLM_MID), {0, 0}, 4},
+#endif
+#ifdef HAVE_HS_APP
+                                      {CFE_SB_MSGID_WRAP_VALUE(DS_HK_TLM_MID), {0, 0}, 4},
+#endif
+#ifdef HAVE_HS_APP
+                                      {CFE_SB_MSGID_WRAP_VALUE(LC_HK_TLM_MID), {0, 0}, 4},
+#endif
 
                                       /* CFE_SB_MSGID_RESERVED entry to mark the end of valid MsgIds */
                                       {CFE_SB_MSGID_RESERVED, {0, 0}, 0}}};
