@@ -1,5 +1,9 @@
 # Changelog
 
+## Development Build: v2.5.0-rc4+dev45
+- adjust subscription table based on apps present
+- See <https://github.com/nasa/to_lab/pull/153>
+
 ## Development Build: v2.5.0-rc4+dev41
 - update cmake recipe
 - See <https://github.com/nasa/to_lab/pull/150>
