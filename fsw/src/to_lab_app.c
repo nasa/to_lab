@@ -53,23 +53,23 @@ CFE_TBL_Handle_t TO_SubTblHandle;
 /*
 ** Prototypes Section
 */
-void  TO_LAB_openTLM(void);
-int32 TO_LAB_init(void);
-void  TO_LAB_exec_local_command(CFE_SB_Buffer_t *SBBufPtr);
-void  TO_LAB_process_commands(void);
-void  TO_LAB_forward_telemetry(void);
+void         TO_LAB_openTLM(void);
+CFE_Status_t TO_LAB_init(void);
+void         TO_LAB_exec_local_command(CFE_SB_Buffer_t *SBBufPtr);
+void         TO_LAB_process_commands(void);
+void         TO_LAB_forward_telemetry(void);
 
 /*
  * Individual Command Handler prototypes
  */
-int32 TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data);
-int32 TO_LAB_Noop(const TO_LAB_NoopCmd_t *data);
-int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutputCmd_t *data);
-int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data);
-int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data);
-int32 TO_LAB_ResetCounters(const TO_LAB_ResetCountersCmd_t *data);
-int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data);
-int32 TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data);
+CFE_Status_t TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data);
+CFE_Status_t TO_LAB_Noop(const TO_LAB_NoopCmd_t *data);
+CFE_Status_t TO_LAB_EnableOutput(const TO_LAB_EnableOutputCmd_t *data);
+CFE_Status_t TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data);
+CFE_Status_t TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data);
+CFE_Status_t TO_LAB_ResetCounters(const TO_LAB_ResetCountersCmd_t *data);
+CFE_Status_t TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data);
+CFE_Status_t TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data);
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                   */
@@ -78,8 +78,8 @@ int32 TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data);
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_LAB_AppMain(void)
 {
-    uint32 RunStatus = CFE_ES_RunStatus_APP_RUN;
-    int32  status;
+    uint32       RunStatus = CFE_ES_RunStatus_APP_RUN;
+    CFE_Status_t status;
 
     CFE_ES_PerfLogEntry(TO_LAB_MAIN_TASK_PERF_ID);
 
@@ -128,14 +128,14 @@ void TO_LAB_delete_callback(void)
 /* TO_LAB_init() -- TO initialization                              */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_init(void)
+CFE_Status_t TO_LAB_init(void)
 {
-    int32  status;
-    char   PipeName[16];
-    uint16 PipeDepth;
-    uint16 i;
-    char   ToTlmPipeName[16];
-    uint16 ToTlmPipeDepth;
+    CFE_Status_t status;
+    char         PipeName[16];
+    uint16       PipeDepth;
+    uint16       i;
+    char         ToTlmPipeName[16];
+    uint16       ToTlmPipeDepth;
 
     TO_LAB_Global.downlink_on = false;
     PipeDepth                 = TO_LAB_CMD_PIPE_DEPTH;
@@ -235,7 +235,7 @@ int32 TO_LAB_init(void)
 /* TO_LAB_EnableOutput() -- TLM output enabled                     */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_EnableOutput(const TO_LAB_EnableOutputCmd_t *data)
+CFE_Status_t TO_LAB_EnableOutput(const TO_LAB_EnableOutputCmd_t *data)
 {
     const TO_LAB_EnableOutput_Payload_t *pCmd = &data->Payload;
 
@@ -352,7 +352,7 @@ void TO_LAB_exec_local_command(CFE_SB_Buffer_t *SBBufPtr)
 /* TO_LAB_Noop() -- Noop Handler                                   */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_Noop(const TO_LAB_NoopCmd_t *data)
+CFE_Status_t TO_LAB_Noop(const TO_LAB_NoopCmd_t *data)
 {
     CFE_EVS_SendEvent(TO_LAB_NOOP_INF_EID, CFE_EVS_EventType_INFORMATION, "No-op command");
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
@@ -364,7 +364,7 @@ int32 TO_LAB_Noop(const TO_LAB_NoopCmd_t *data)
 /* TO_LAB_ResetCounters() -- Reset counters                        */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_ResetCounters(const TO_LAB_ResetCountersCmd_t *data)
+CFE_Status_t TO_LAB_ResetCounters(const TO_LAB_ResetCountersCmd_t *data)
 {
     TO_LAB_Global.HkTlm.Payload.CommandErrorCounter = 0;
     TO_LAB_Global.HkTlm.Payload.CommandCounter      = 0;
@@ -376,7 +376,7 @@ int32 TO_LAB_ResetCounters(const TO_LAB_ResetCountersCmd_t *data)
 /* TO_LAB_SendDataTypes()  -- Output data types                    */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data)
+CFE_Status_t TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data)
 {
     int16 i;
     char  string_variable[10] = "ABCDEFGHIJ";
@@ -427,7 +427,7 @@ int32 TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data)
 /* TO_LAB_SendHousekeeping() -- HK status                          */
 /* Does not increment CommandCounter                               */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data)
+CFE_Status_t TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data)
 {
     CFE_SB_TimeStampMsg(CFE_MSG_PTR(TO_LAB_Global.HkTlm.TelemetryHeader));
     CFE_SB_TransmitMsg(CFE_MSG_PTR(TO_LAB_Global.HkTlm.TelemetryHeader), true);
@@ -458,10 +458,10 @@ void TO_LAB_openTLM(void)
 /* TO_LAB_AddPacket() -- Add packets                               */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data)
+CFE_Status_t TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data)
 {
     const TO_LAB_AddPacket_Payload_t *pCmd = &data->Payload;
-    int32                             status;
+    CFE_Status_t                      status;
 
     status = CFE_SB_SubscribeEx(pCmd->Stream, TO_LAB_Global.Tlm_pipe, pCmd->Flags, pCmd->BufLimit);
 
@@ -483,10 +483,10 @@ int32 TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data)
 /* TO_LAB_RemovePacket() -- Remove Packet                          */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data)
+CFE_Status_t TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data)
 {
     const TO_LAB_RemovePacket_Payload_t *pCmd = &data->Payload;
-    int32                                status;
+    CFE_Status_t                         status;
 
     status = CFE_SB_Unsubscribe(pCmd->Stream, TO_LAB_Global.Tlm_pipe);
     if (status != CFE_SUCCESS)
@@ -505,10 +505,10 @@ int32 TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data)
 /* TO_LAB_RemoveAll() --  Remove All Packets                       */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data)
+CFE_Status_t TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data)
 {
-    int32 status;
-    int   i;
+    CFE_Status_t status;
+    int          i;
 
     for (i = 0; (i < (sizeof(TO_LAB_Subs->Subs) / sizeof(TO_LAB_Subs->Subs[0]))); i++)
     {
@@ -538,8 +538,8 @@ int32 TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data)
 void TO_LAB_forward_telemetry(void)
 {
     OS_SockAddr_t    d_addr;
-    int32            status;
-    int32            CFE_SB_status;
+    CFE_Status_t     status;
+    CFE_Status_t     CFE_SB_status;
     size_t           size;
     CFE_SB_Buffer_t *SBBufPtr;
 
