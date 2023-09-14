@@ -204,7 +204,7 @@ int32 TO_LAB_init(void)
     {
         if (!CFE_SB_IsValidMsgId(TO_LAB_Subs->Subs[i].Stream))
         {
-            /* Only process until invalid MsgId (aka TO_LAB_UNUSED) is found*/
+            /* Only process until invalid MsgId is found*/
             break;
         }
         else if (CFE_SB_IsValidMsgId(TO_LAB_Subs->Subs[i].Stream))
