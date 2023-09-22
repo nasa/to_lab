@@ -80,7 +80,7 @@ typedef struct
 
 typedef struct
 {
-    CFE_MSG_CommandHeader_t CmdHeade; /**< \brief Command header */
+    CFE_MSG_CommandHeader_t CommandHeader; /**< \brief Command header */
 } TO_LAB_NoArgsCmd_t;
 
 /*
