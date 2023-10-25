@@ -18,55 +18,31 @@
 
 /**
  * @file
- *   Define TO Lab Application header file
+ *   Specification for the TO_LAB table related
+ *   constant definitions.
+ *
+ * @note
+ *   These Macro definitions have been put in this file (instead of
+ *   to_lab_tbl.h). DO NOT PUT ANY TYPEDEFS OR
+ *   STRUCTURE DEFINITIONS IN THIS FILE!
+ *   ADD THEM TO to_lab_tbl.h IF NEEDED!
  */
-
-#ifndef TO_LAB_APP_H
-#define TO_LAB_APP_H
+#ifndef TO_LAB_TBLDEFS_H
+#define TO_LAB_TBLDEFS_H
 
 #include "common_types.h"
-#include "osapi.h"
-#include "cfe.h"
-
 #include "to_lab_mission_cfg.h"
-#include "to_lab_platform_cfg.h"
-#include "to_lab_cmds.h"
-#include "to_lab_dispatch.h"
-#include "to_lab_msg.h"
-#include "to_lab_tbl.h"
+#include "cfe_sb_extern_typedefs.h"
 
-/******************************************************************************/
+/************************************************************************
+ * Macro Definitions
+ ************************************************************************/
 
 typedef struct
 {
-    CFE_SB_PipeId_t Tlm_pipe;
-    CFE_SB_PipeId_t Cmd_pipe;
-    osal_id_t       TLMsockid;
-    bool            downlink_on;
-    char            tlm_dest_IP[17];
-    bool            suppress_sendto;
-
-    TO_LAB_HkTlm_t        HkTlm;
-    TO_LAB_DataTypesTlm_t DataTypesTlm;
-
-    TO_LAB_Subs_t *  SubsTblPtr;
-    CFE_TBL_Handle_t SubsTblHandle;
-
-} TO_LAB_GlobalData_t;
-
-/*
-** Prototypes Section
-*/
-void TO_LAB_AppMain(void);
-
-void  TO_LAB_openTLM(void);
-int32 TO_LAB_init(void);
-void  TO_LAB_process_commands(void);
-void  TO_LAB_forward_telemetry(void);
-
-/******************************************************************************/
-
-/* Global State Object */
-extern TO_LAB_GlobalData_t TO_LAB_Global;
+    CFE_SB_MsgId_t Stream;
+    CFE_SB_Qos_t   Flags;
+    uint16         BufLimit;
+} TO_LAB_Sub_t;
 
 #endif
