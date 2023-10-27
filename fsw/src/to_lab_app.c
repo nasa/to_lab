@@ -24,6 +24,7 @@
 #include "cfe.h"
 
 #include "to_lab_app.h"
+#include "to_lab_encode.h"
 #include "to_lab_eventids.h"
 #include "to_lab_msgids.h"
 #include "to_lab_perfids.h"
@@ -251,45 +252,53 @@ void TO_LAB_openTLM(void)
 void TO_LAB_forward_telemetry(void)
 {
     OS_SockAddr_t    d_addr;
-    int32            status;
-    int32            CFE_SB_status;
-    size_t           size;
+    int32            OsStatus;
+    CFE_Status_t     CfeStatus;
     CFE_SB_Buffer_t *SBBufPtr;
+    const void *     NetBufPtr;
+    size_t           NetBufSize;
 
     OS_SocketAddrInit(&d_addr, OS_SocketDomain_INET);
     OS_SocketAddrSetPort(&d_addr, TO_LAB_TLM_PORT);
     OS_SocketAddrFromString(&d_addr, TO_LAB_Global.tlm_dest_IP);
-    status = 0;
+    OsStatus = 0;
 
     do
     {
-        CFE_SB_status = CFE_SB_ReceiveBuffer(&SBBufPtr, TO_LAB_Global.Tlm_pipe, CFE_SB_POLL);
+        CfeStatus = CFE_SB_ReceiveBuffer(&SBBufPtr, TO_LAB_Global.Tlm_pipe, CFE_SB_POLL);
 
-        if ((CFE_SB_status == CFE_SUCCESS) && (TO_LAB_Global.suppress_sendto == false))
+        if ((CfeStatus == CFE_SUCCESS) && (TO_LAB_Global.suppress_sendto == false))
         {
-            CFE_MSG_GetSize(&SBBufPtr->Msg, &size);
+            OsStatus = OS_SUCCESS;
 
             if (TO_LAB_Global.downlink_on == true)
             {
                 CFE_ES_PerfLogEntry(TO_LAB_SOCKET_SEND_PERF_ID);
 
-                status = OS_SocketSendTo(TO_LAB_Global.TLMsockid, SBBufPtr, size, &d_addr);
+                CfeStatus = TO_LAB_EncodeOutputMessage(SBBufPtr, &NetBufPtr, &NetBufSize);
+
+                if (CfeStatus != CFE_SUCCESS)
+                {
+                    CFE_EVS_SendEvent(TO_LAB_ENCODE_ERR_EID, CFE_EVS_EventType_ERROR, "Error packing output: %d\n",
+                                      (int)CfeStatus);
+                }
+                else
+                {
+                    OsStatus = OS_SocketSendTo(TO_LAB_Global.TLMsockid, NetBufPtr, NetBufSize, &d_addr);
+                }
 
                 CFE_ES_PerfLogExit(TO_LAB_SOCKET_SEND_PERF_ID);
             }
-            else
-            {
-                status = 0;
-            }
-            if (status < 0)
+
+            if (OsStatus < 0)
             {
                 CFE_EVS_SendEvent(TO_LAB_TLMOUTSTOP_ERR_EID, CFE_EVS_EventType_ERROR,
-                                  "L%d TO sendto error %d. Tlm output suppressed\n", __LINE__, (int)status);
+                                  "L%d TO sendto error %d. Tlm output suppressed\n", __LINE__, (int)OsStatus);
                 TO_LAB_Global.suppress_sendto = true;
             }
         }
         /* If CFE_SB_status != CFE_SUCCESS, then no packet was received from CFE_SB_ReceiveBuffer() */
-    } while (CFE_SB_status == CFE_SUCCESS);
+    } while (CfeStatus == CFE_SUCCESS);
 }
 
 /************************/

@@ -20,6 +20,7 @@ set(APP_SRC_FILES
     fsw/src/to_lab_app.c
     fsw/src/to_lab_cmds.c
     fsw/src/to_lab_dispatch.c
+    fsw/src/to_lab_passthru_encode.c
 )
 
 # Create the app module
