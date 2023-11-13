@@ -33,33 +33,11 @@
 #include "to_lab_tbl.h"
 
 /*
-** Global Data Section
+** TO Global Data Section
 */
 TO_LAB_GlobalData_t TO_LAB_Global;
-
-TO_LAB_Subs_t *  TO_LAB_Subs;
-CFE_TBL_Handle_t TO_SubTblHandle;
-
-/*
-** Prototypes Section
-*/
-void         TO_LAB_openTLM(void);
-CFE_Status_t TO_LAB_init(void);
-void         TO_LAB_exec_local_command(CFE_SB_Buffer_t *SBBufPtr);
-void         TO_LAB_process_commands(void);
-void         TO_LAB_forward_telemetry(void);
-
-/*
- * Individual Command Handler prototypes
- */
-CFE_Status_t TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data);
-CFE_Status_t TO_LAB_Noop(const TO_LAB_NoopCmd_t *data);
-CFE_Status_t TO_LAB_EnableOutput(const TO_LAB_EnableOutputCmd_t *data);
-CFE_Status_t TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data);
-CFE_Status_t TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data);
-CFE_Status_t TO_LAB_ResetCounters(const TO_LAB_ResetCountersCmd_t *data);
-CFE_Status_t TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data);
-CFE_Status_t TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data);
+TO_LAB_Subs_t *     TO_LAB_Subs;
+CFE_TBL_Handle_t    TO_SubTblHandle;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                   */
