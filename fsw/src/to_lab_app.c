@@ -159,7 +159,7 @@ int32 TO_LAB_init(void)
         CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
     }
     else
-        CFE_EVS_SendEvent(TO_LAB_CRCMDPIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't create cmd pipe status %i",
+        CFE_EVS_SendEvent(TO_LAB_CR_PIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't create cmd pipe status %i",
                           __LINE__, (int)status);
 
     /* Create TO TLM pipe */
