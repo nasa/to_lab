@@ -179,6 +179,8 @@ int32 TO_LAB_init(void)
             /* Only process until invalid MsgId is found*/
             break;
         }
+        status = CFE_SB_SubscribeEx(TO_LAB_Subs->Subs[i].Stream, TO_LAB_Global.Tlm_pipe, TO_LAB_Subs->Subs[i].Flags,
+                                    TO_LAB_Subs->Subs[i].BufLimit);
 
         status = CFE_SB_SubscribeEx(SubEntry->Stream, TO_LAB_Global.Tlm_pipe, SubEntry->Flags, SubEntry->BufLimit);
         if (status != CFE_SUCCESS)
