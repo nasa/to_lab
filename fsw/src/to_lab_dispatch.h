@@ -21,52 +21,18 @@
  *   Define TO Lab Application header file
  */
 
-#ifndef TO_LAB_APP_H
-#define TO_LAB_APP_H
+#ifndef TO_LAB_DISPATCH_H
+#define TO_LAB_DISPATCH_H
 
 #include "common_types.h"
-#include "osapi.h"
-#include "cfe.h"
-
-#include "to_lab_mission_cfg.h"
-#include "to_lab_platform_cfg.h"
-#include "to_lab_cmds.h"
-#include "to_lab_dispatch.h"
-#include "to_lab_msg.h"
-#include "to_lab_tbl.h"
 
 /******************************************************************************/
-
-typedef struct
-{
-    CFE_SB_PipeId_t Tlm_pipe;
-    CFE_SB_PipeId_t Cmd_pipe;
-    osal_id_t       TLMsockid;
-    bool            downlink_on;
-    char            tlm_dest_IP[17];
-    bool            suppress_sendto;
-
-    TO_LAB_HkTlm_t        HkTlm;
-    TO_LAB_DataTypesTlm_t DataTypesTlm;
-
-    TO_LAB_Subs_t *  SubsTblPtr;
-    CFE_TBL_Handle_t SubsTblHandle;
-
-} TO_LAB_GlobalData_t;
 
 /*
 ** Prototypes Section
 */
-void TO_LAB_AppMain(void);
-
-void  TO_LAB_openTLM(void);
-int32 TO_LAB_init(void);
-void  TO_LAB_process_commands(void);
-void  TO_LAB_forward_telemetry(void);
+void TO_LAB_TaskPipe(const CFE_SB_Buffer_t *SBBufPtr);
 
 /******************************************************************************/
-
-/* Global State Object */
-extern TO_LAB_GlobalData_t TO_LAB_Global;
 
 #endif

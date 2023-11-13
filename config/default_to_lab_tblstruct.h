@@ -18,15 +18,33 @@
 
 /**
  * @file
- *   Define TO Lab Message IDs
+ *   Specification for the TO_LAB table structures
+ *
+ * Provides default definitions for TO_LAB table structures
+ *
+ * @note This file may be overridden/superceded by mission-provided defintions
+ * either by overriding this header or by generating definitions from a command/data
+ * dictionary tool.
  */
-#ifndef TO_LAB_MSGIDS_H
-#define TO_LAB_MSGIDS_H
+#ifndef TO_LAB_TBLSTRUCT_H
+#define TO_LAB_TBLSTRUCT_H
 
-#define TO_LAB_CMD_MID     0x1880
-#define TO_LAB_SEND_HK_MID 0x1881
+/*************************************************************************
+ * Includes
+ *************************************************************************/
+#include "to_lab_tbldefs.h"
 
-#define TO_LAB_HK_TLM_MID     0x0880
-#define TO_LAB_DATA_TYPES_MID 0x0881
+/************************************************************************
+ * Macro Definitions
+ ************************************************************************/
+
+/*************************************************************************
+ * Type Definitions
+ *************************************************************************/
+
+typedef struct
+{
+    TO_LAB_Sub_t Subs[TO_LAB_MAX_SUBSCRIPTIONS];
+} TO_LAB_Subs_t;
 
 #endif

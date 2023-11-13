@@ -18,55 +18,35 @@
 
 /**
  * @file
- *   Define TO Lab Application header file
+ *   Define TO Lab Event messages
  */
+#ifndef TO_LAB_EVENTIDS_H
+#define TO_LAB_EVENTIDS_H
 
-#ifndef TO_LAB_APP_H
-#define TO_LAB_APP_H
+/*****************************************************************************/
 
-#include "common_types.h"
-#include "osapi.h"
-#include "cfe.h"
+/* Event message ID's */
+#define TO_LAB_EVM_RESERVED 0
 
-#include "to_lab_mission_cfg.h"
-#include "to_lab_platform_cfg.h"
-#include "to_lab_cmds.h"
-#include "to_lab_dispatch.h"
-#include "to_lab_msg.h"
-#include "to_lab_tbl.h"
-
-/******************************************************************************/
-
-typedef struct
-{
-    CFE_SB_PipeId_t Tlm_pipe;
-    CFE_SB_PipeId_t Cmd_pipe;
-    osal_id_t       TLMsockid;
-    bool            downlink_on;
-    char            tlm_dest_IP[17];
-    bool            suppress_sendto;
-
-    TO_LAB_HkTlm_t        HkTlm;
-    TO_LAB_DataTypesTlm_t DataTypesTlm;
-
-    TO_LAB_Subs_t *  SubsTblPtr;
-    CFE_TBL_Handle_t SubsTblHandle;
-
-} TO_LAB_GlobalData_t;
-
-/*
-** Prototypes Section
-*/
-void TO_LAB_AppMain(void);
-
-void  TO_LAB_openTLM(void);
-int32 TO_LAB_init(void);
-void  TO_LAB_process_commands(void);
-void  TO_LAB_forward_telemetry(void);
+#define TO_LAB_INIT_INF_EID          1
+#define TO_LAB_CRCMDPIPE_ERR_EID     2
+#define TO_LAB_TLMOUTENA_INF_EID     3
+#define TO_LAB_SUBSCRIBE_ERR_EID     4
+#define TO_LAB_TLMPIPE_ERR_EID       5
+#define TO_LAB_TLMOUTSOCKET_ERR_EID  6
+#define TO_LAB_TLMOUTSTOP_ERR_EID    7
+#define TO_LAB_MSGID_ERR_EID         8
+#define TO_LAB_FNCODE_ERR_EID        9
+#define TO_LAB_ADDPKT_ERR_EID        10
+#define TO_LAB_REMOVEPKT_ERR_EID     11
+#define TO_LAB_REMOVEALLPTKS_ERR_EID 12
+#define TO_LAB_ADDPKT_INF_EID        15
+#define TO_LAB_REMOVEPKT_INF_EID     16
+#define TO_LAB_REMOVEALLPKTS_INF_EID 17
+#define TO_LAB_NOOP_INF_EID          18
+#define TO_LAB_TBL_ERR_EID           19
+#define TO_LAB_ENCODE_ERR_EID        20
 
 /******************************************************************************/
-
-/* Global State Object */
-extern TO_LAB_GlobalData_t TO_LAB_Global;
 
 #endif
