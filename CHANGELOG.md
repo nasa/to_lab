@@ -1,5 +1,15 @@
 # Changelog
 
+## Development Build: v2.5.0-rc4+dev66
+- reorganize source files
+- Apply consistent Event ID names to common events
+- Refactor mutually exclusive logic in if, else if block
+- Add check for failure of CFE_EVS_Register() during initialization
+- Convert int32 return codes and variables to CFE_Status_t
+- Move function prototypes to header file
+- Update misnamed CmdHeader variable in to_lab_msg.h
+- See <https://github.com/nasa/to_lab/pull/168>, <https://github.com/nasa/to_lab/pull/134>, <https://github.com/nasa/to_lab/pull/146>, <https://github.com/nasa/to_lab/pull/148>, <https://github.com/nasa/to_lab/pull/156>, <https://github.com/nasa/to_lab/pull/158>, and <https://github.com/nasa/to_lab/pull/163>
+
 ## Development Build: v2.5.0-rc4+dev49
 - Remove unused/unnecessary TO_LAB_UNUSED
 - See <https://github.com/nasa/to_lab/pull/160>
