@@ -37,6 +37,30 @@
 */
 TO_LAB_GlobalData_t TO_LAB_Global;
 
+TO_LAB_Subs_t *  TO_LAB_Subs;
+CFE_TBL_Handle_t TO_SubTblHandle;
+
+/*
+** Prototypes Section
+*/
+void         TO_LAB_openTLM(void);
+CFE_Status_t TO_LAB_init(void);
+void         TO_LAB_exec_local_command(CFE_SB_Buffer_t *SBBufPtr);
+void         TO_LAB_process_commands(void);
+void         TO_LAB_forward_telemetry(void);
+
+/*
+ * Individual Command Handler prototypes
+ */
+CFE_Status_t TO_LAB_AddPacket(const TO_LAB_AddPacketCmd_t *data);
+CFE_Status_t TO_LAB_Noop(const TO_LAB_NoopCmd_t *data);
+CFE_Status_t TO_LAB_EnableOutput(const TO_LAB_EnableOutputCmd_t *data);
+CFE_Status_t TO_LAB_RemoveAll(const TO_LAB_RemoveAllCmd_t *data);
+CFE_Status_t TO_LAB_RemovePacket(const TO_LAB_RemovePacketCmd_t *data);
+CFE_Status_t TO_LAB_ResetCounters(const TO_LAB_ResetCountersCmd_t *data);
+CFE_Status_t TO_LAB_SendDataTypes(const TO_LAB_SendDataTypesCmd_t *data);
+CFE_Status_t TO_LAB_SendHousekeeping(const CFE_MSG_CommandHeader_t *data);
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                   */
 /* TO_LAB_AppMain() -- Application entry point and main process loop */
@@ -44,8 +68,8 @@ TO_LAB_GlobalData_t TO_LAB_Global;
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_LAB_AppMain(void)
 {
-    uint32 RunStatus = CFE_ES_RunStatus_APP_RUN;
-    int32  status;
+    uint32       RunStatus = CFE_ES_RunStatus_APP_RUN;
+    CFE_Status_t status;
 
     CFE_ES_PerfLogEntry(TO_LAB_MAIN_TASK_PERF_ID);
 
@@ -94,14 +118,14 @@ void TO_LAB_delete_callback(void)
 /* TO_LAB_init() -- TO initialization                              */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int32 TO_LAB_init(void)
+CFE_Status_t TO_LAB_init(void)
 {
-    int32         status;
-    char          PipeName[16];
-    uint16        PipeDepth;
-    uint16        i;
-    char          ToTlmPipeName[16];
-    uint16        ToTlmPipeDepth;
+    CFE_Status_t status;
+    char         PipeName[16];
+    uint16       PipeDepth;
+    uint16       i;
+    char         ToTlmPipeName[16];
+    uint16       ToTlmPipeDepth;
     void *        TblPtr;
     TO_LAB_Sub_t *SubEntry;
 
@@ -260,8 +284,8 @@ void TO_LAB_openTLM(void)
 void TO_LAB_forward_telemetry(void)
 {
     OS_SockAddr_t    d_addr;
-    int32            OsStatus;
-    CFE_Status_t     CfeStatus;
+    CFE_Status_t     status;
+    CFE_Status_t     CFE_SB_status;
     CFE_SB_Buffer_t *SBBufPtr;
     const void *     NetBufPtr;
     size_t           NetBufSize;
