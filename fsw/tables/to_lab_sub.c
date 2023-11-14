@@ -22,8 +22,9 @@
  */
 
 #include "cfe_tbl_filedef.h" /* Required to obtain the CFE_TBL_FILEDEF macro definition */
-
-#include "to_lab_sub_table.h"
+#include "cfe_sb_api_typedefs.h"
+#include "to_lab_tbl.h"
+#include "cfe_msgids.h"
 
 /*
 ** Add the proper include file for the message IDs below
