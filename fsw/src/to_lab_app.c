@@ -36,8 +36,6 @@
 ** TO Global Data Section
 */
 TO_LAB_GlobalData_t TO_LAB_Global;
-TO_LAB_Subs_t *     TO_LAB_Subs;
-CFE_TBL_Handle_t    TO_SubTblHandle;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                   */
@@ -98,12 +96,12 @@ void TO_LAB_delete_callback(void)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 CFE_Status_t TO_LAB_init(void)
 {
-    CFE_Status_t status;
-    char         PipeName[16];
-    uint16       PipeDepth;
-    uint16       i;
-    char         ToTlmPipeName[16];
-    uint16       ToTlmPipeDepth;
+    CFE_Status_t  status;
+    char          PipeName[16];
+    uint16        PipeDepth;
+    uint16        i;
+    char          ToTlmPipeName[16];
+    uint16        ToTlmPipeDepth;
     void *        TblPtr;
     TO_LAB_Sub_t *SubEntry;
 
@@ -187,8 +185,6 @@ CFE_Status_t TO_LAB_init(void)
             /* Only process until invalid MsgId is found*/
             break;
         }
-        status = CFE_SB_SubscribeEx(TO_LAB_Subs->Subs[i].Stream, TO_LAB_Global.Tlm_pipe, TO_LAB_Subs->Subs[i].Flags,
-                                    TO_LAB_Subs->Subs[i].BufLimit);
 
         status = CFE_SB_SubscribeEx(SubEntry->Stream, TO_LAB_Global.Tlm_pipe, SubEntry->Flags, SubEntry->BufLimit);
         if (status != CFE_SUCCESS)
@@ -262,8 +258,8 @@ void TO_LAB_openTLM(void)
 void TO_LAB_forward_telemetry(void)
 {
     OS_SockAddr_t    d_addr;
-    CFE_Status_t     status;
-    CFE_Status_t     CFE_SB_status;
+    int32            OsStatus;
+    CFE_Status_t     CfeStatus;
     CFE_SB_Buffer_t *SBBufPtr;
     const void *     NetBufPtr;
     size_t           NetBufSize;

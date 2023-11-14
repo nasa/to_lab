@@ -97,7 +97,7 @@ void TO_LAB_TaskPipe(const CFE_SB_Buffer_t *SBBufPtr)
             break;
 
         default:
-            CFE_EVS_SendEvent(TO_LAB_MSGID_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO: Invalid Msg ID Rcvd 0x%x",
+            CFE_EVS_SendEvent(TO_LAB_MID_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO: Invalid Msg ID Rcvd 0x%x",
                               __LINE__, (unsigned int)CFE_SB_MsgIdToValue(MsgId));
             break;
     }
