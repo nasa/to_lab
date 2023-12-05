@@ -34,7 +34,20 @@
 
 /*****************************************************************************/
 
+/**
+ * @brief Main loop task delay
+ */
 #define TO_LAB_TASK_MSEC 500 /* run at 2 Hz */
+
+/**
+ * @brief Telemetry pipe timeout
+ */
+#define TO_LAB_TLM_PIPE_TIMEOUT CFE_SB_POLL
+
+/**
+ * @brief Maximum number of telemetry packets to send each wakeup
+ */
+#define TO_LAB_MAX_TLM_PKTS OS_QUEUE_MAX_DEPTH
 
 /**
  * Depth of pipe for commands to the TO_LAB application itself
