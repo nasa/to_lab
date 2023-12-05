@@ -63,7 +63,7 @@ void TO_LAB_AppMain(void)
     {
         CFE_ES_PerfLogExit(TO_LAB_MAIN_TASK_PERF_ID);
 
-        OS_TaskDelay(TO_LAB_TASK_MSEC); /*2 Hz*/
+        OS_TaskDelay(TO_LAB_TASK_MSEC);
 
         CFE_ES_PerfLogEntry(TO_LAB_MAIN_TASK_PERF_ID);
 
@@ -263,6 +263,7 @@ void TO_LAB_forward_telemetry(void)
     CFE_SB_Buffer_t *SBBufPtr;
     const void *     NetBufPtr;
     size_t           NetBufSize;
+    uint32           PktCount = 0;
 
     OS_SocketAddrInit(&d_addr, OS_SocketDomain_INET);
     OS_SocketAddrSetPort(&d_addr, TO_LAB_TLM_PORT);
@@ -271,7 +272,7 @@ void TO_LAB_forward_telemetry(void)
 
     do
     {
-        CfeStatus = CFE_SB_ReceiveBuffer(&SBBufPtr, TO_LAB_Global.Tlm_pipe, CFE_SB_POLL);
+        CfeStatus = CFE_SB_ReceiveBuffer(&SBBufPtr, TO_LAB_Global.Tlm_pipe, TO_LAB_TLM_PIPE_TIMEOUT);
 
         if ((CfeStatus == CFE_SUCCESS) && (TO_LAB_Global.suppress_sendto == false))
         {
@@ -304,7 +305,9 @@ void TO_LAB_forward_telemetry(void)
             }
         }
         /* If CFE_SB_status != CFE_SUCCESS, then no packet was received from CFE_SB_ReceiveBuffer() */
-    } while (CfeStatus == CFE_SUCCESS);
+
+        PktCount++;
+    } while (CfeStatus == CFE_SUCCESS && PktCount < TO_LAB_MAX_TLM_PKTS);
 }
 
 /************************/
