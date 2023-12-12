@@ -1,6 +1,10 @@
 # Changelog
 
-## Development Build: v2.5.0-rc4:dev71
+## Development Build: v2.5.0-rc4+dev75
+- define msgids via topicids
+- See <https://github.com/nasa/to_lab/pull/176>
+
+## Development Build: v2.5.0-rc4+dev71
 - Add timeout and packet limit on sending telemetry
 - See <https://github.com/nasa/to_lab/pull/173>
 
