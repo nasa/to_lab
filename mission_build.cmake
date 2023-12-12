@@ -20,6 +20,7 @@ set(TO_LAB_MISSION_CONFIG_FILE_LIST
   to_lab_tbl.h
   to_lab_tbldefs.h
   to_lab_tblstruct.h
+  to_lab_topicids.h
 )
 
 if (CFE_EDS_ENABLED_BUILD)
