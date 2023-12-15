@@ -39,23 +39,23 @@
 #include "sample_app_msgids.h"
 #endif
 
-#ifdef HAVE_HS_APP
+#ifdef HAVE_HS
 #include "hs_msgids.h"
 #endif
 
-#ifdef HAVE_FM_APP
+#ifdef HAVE_FM
 #include "fm_msgids.h"
 #endif
 
-#ifdef HAVE_SC_APP
+#ifdef HAVE_SC
 #include "sc_msgids.h"
 #endif
 
-#ifdef HAVE_DS_APP
+#ifdef HAVE_DS
 #include "ds_msgids.h"
 #endif
 
-#ifdef HAVE_LC_APP
+#ifdef HAVE_LC
 #include "lc_msgids.h"
 #endif
 
@@ -83,19 +83,19 @@ TO_LAB_Subs_t TO_LAB_Subs = {.Subs = {/* CFS App Subscriptions */
 #ifdef HAVE_SAMPLE_APP
                                       {CFE_SB_MSGID_WRAP_VALUE(SAMPLE_APP_HK_TLM_MID), {0, 0}, 4},
 #endif
-#ifdef HAVE_HS_APP
+#ifdef HAVE_HS
                                       {CFE_SB_MSGID_WRAP_VALUE(HS_HK_TLM_MID), {0, 0}, 4},
 #endif
-#ifdef HAVE_HS_APP
+#ifdef HAVE_FM
                                       {CFE_SB_MSGID_WRAP_VALUE(FM_HK_TLM_MID), {0, 0}, 4},
 #endif
-#ifdef HAVE_HS_APP
+#ifdef HAVE_SC
                                       {CFE_SB_MSGID_WRAP_VALUE(SC_HK_TLM_MID), {0, 0}, 4},
 #endif
-#ifdef HAVE_HS_APP
+#ifdef HAVE_DS
                                       {CFE_SB_MSGID_WRAP_VALUE(DS_HK_TLM_MID), {0, 0}, 4},
 #endif
-#ifdef HAVE_HS_APP
+#ifdef HAVE_LC
                                       {CFE_SB_MSGID_WRAP_VALUE(LC_HK_TLM_MID), {0, 0}, 4},
 #endif
 
