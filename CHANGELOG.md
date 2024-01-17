@@ -1,5 +1,9 @@
 # Changelog
 
+## Development Build: equuleus-rc1+dev38
+- updating to_lab to use new versioning system
+- See <https://github.com/nasa/to_lab/pull/186>
+
 ## Development Build: v2.5.0-rc4+dev75
 - define msgids via topicids
 - See <https://github.com/nasa/to_lab/pull/176>
