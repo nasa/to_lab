@@ -22,6 +22,7 @@
  */
 
 #include "cfe.h"
+#include "cfe_config.h"
 
 #include "to_lab_app.h"
 #include "to_lab_encode.h"
@@ -104,6 +105,7 @@ CFE_Status_t TO_LAB_init(void)
     uint16        ToTlmPipeDepth;
     void *        TblPtr;
     TO_LAB_Sub_t *SubEntry;
+    char          VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
 
     TO_LAB_Global.downlink_on = false;
     PipeDepth                 = TO_LAB_CMD_PIPE_DEPTH;
@@ -202,8 +204,11 @@ CFE_Status_t TO_LAB_init(void)
     */
     OS_TaskInstallDeleteHandler(&TO_LAB_delete_callback);
 
+    CFE_Config_GetVersionString(VersionString, TO_LAB_CFG_MAX_VERSION_STR_LEN, "TO Lab",
+                          TO_LAB_VERSION, TO_LAB_BUILD_CODENAME, TO_LAB_LAST_OFFICIAL);
+
     CFE_EVS_SendEvent(TO_LAB_INIT_INF_EID, CFE_EVS_EventType_INFORMATION,
-                      "TO Lab Initialized.%s, Awaiting enable command.", TO_LAB_VERSION_STRING);
+                      "TO Lab Initialized.%s, Awaiting enable command.", VersionString);
 
     return CFE_SUCCESS;
 }
