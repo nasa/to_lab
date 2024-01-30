@@ -75,6 +75,9 @@ CFE_Status_t TO_LAB_ResetCountersCmd(const TO_LAB_ResetCountersCmd_t *data)
 {
     TO_LAB_Global.HkTlm.Payload.CommandErrorCounter = 0;
     TO_LAB_Global.HkTlm.Payload.CommandCounter      = 0;
+
+    CFE_EVS_SendEvent(TO_LAB_RESET_INF_EID, CFE_EVS_EventType_INFORMATION, "Reset counters command");
+
     return CFE_SUCCESS;
 }
 
