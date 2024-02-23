@@ -1,5 +1,10 @@
 # Changelog
 
+## Development Build: equuleus-rc1+dev44
+- Add an event for ResetCountersCmd
+- Add version information to NOOP event
+- See <https://github.com/nasa/to_lab/pull/191> and <https://github.com/nasa/to_lab/pull/136>
+
 ## Development Build: equuleus-rc1+dev38
 - updating to_lab to use new versioning system
 - See <https://github.com/nasa/to_lab/pull/186>
