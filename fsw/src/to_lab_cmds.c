@@ -22,12 +22,14 @@
  */
 
 #include "cfe.h"
+#include "cfe_config.h" // For CFE_Config_GetVersionString
 
 #include "to_lab_app.h"
 #include "to_lab_cmds.h"
 #include "to_lab_msg.h"
 #include "to_lab_eventids.h"
 #include "to_lab_msgids.h"
+#include "to_lab_version.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -61,9 +63,15 @@ CFE_Status_t TO_LAB_EnableOutputCmd(const TO_LAB_EnableOutputCmd_t *data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 CFE_Status_t TO_LAB_NoopCmd(const TO_LAB_NoopCmd_t *data)
 {
-    CFE_EVS_SendEvent(TO_LAB_NOOP_INF_EID, CFE_EVS_EventType_INFORMATION, "No-op command");
-    ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
-    return CFE_SUCCESS;
+  char VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
+
+  CFE_Config_GetVersionString(VersionString, TO_LAB_CFG_MAX_VERSION_STR_LEN, "TO Lab",
+                        TO_LAB_VERSION, TO_LAB_BUILD_CODENAME, TO_LAB_LAST_OFFICIAL);
+
+  CFE_EVS_SendEvent(TO_LAB_NOOP_INF_EID, CFE_EVS_EventType_INFORMATION, "TO: NOOP command. %s", VersionString);
+
+  ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
+  return CFE_SUCCESS;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
