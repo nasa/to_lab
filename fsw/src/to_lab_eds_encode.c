@@ -35,6 +35,8 @@
 #include "cfe_mission_eds_parameters.h"
 #include "cfe_mission_eds_interface_parameters.h"
 
+#include "cfe_hdr_eds_datatypes.h"
+
 CFE_Status_t TO_LAB_EncodeOutputMessage(const CFE_SB_Buffer_t *SourceBuffer, const void **DestBufferOut,
                                         size_t *DestSizeOut)
 {
@@ -47,7 +49,7 @@ CFE_Status_t TO_LAB_EncodeOutputMessage(const CFE_SB_Buffer_t *SourceBuffer, con
     CFE_Status_t                          ResultStatus;
     size_t                                SourceBufferSize;
 
-    static CFE_HDR_TelemetryHeader_PackedBuffer_t NetworkBuffer;
+    static EdsPackedBuffer_CFE_HDR_TelemetryHeader_t NetworkBuffer;
 
     const EdsLib_DatabaseObject_t *EDS_DB = CFE_Config_GetObjPointer(CFE_CONFIGID_MISSION_EDS_DB);
 
@@ -61,15 +63,15 @@ CFE_Status_t TO_LAB_EncodeOutputMessage(const CFE_SB_Buffer_t *SourceBuffer, con
     CFE_MissionLib_UnmapPublisherComponent(&PublisherParams, &PubSubParams);
     TopicId = PublisherParams.Telemetry.TopicId;
 
-    EdsStatus = CFE_MissionLib_GetArgumentType(&CFE_SOFTWAREBUS_INTERFACE, CFE_SB_Telemetry_Interface_ID, TopicId, 1, 1,
-                                            &EdsId);
+    EdsStatus = CFE_MissionLib_GetArgumentType(&CFE_SOFTWAREBUS_INTERFACE, EDS_INTERFACE_ID(CFE_SB_Telemetry), TopicId,
+                                               1, 1, &EdsId);
     if (EdsStatus != CFE_MISSIONLIB_SUCCESS)
     {
         return CFE_STATUS_UNKNOWN_MSG_ID;
     }
 
-    EdsStatus = EdsLib_DataTypeDB_PackCompleteObject(EDS_DB, &EdsId, NetworkBuffer, SourceBuffer, 8 * sizeof(NetworkBuffer),
-                                                  SourceBufferSize);
+    EdsStatus = EdsLib_DataTypeDB_PackCompleteObject(EDS_DB, &EdsId, NetworkBuffer, SourceBuffer,
+                                                     8 * sizeof(NetworkBuffer), SourceBufferSize);
     if (EdsStatus != EDSLIB_SUCCESS)
     {
         return CFE_SB_INTERNAL_ERR;
@@ -81,7 +83,7 @@ CFE_Status_t TO_LAB_EncodeOutputMessage(const CFE_SB_Buffer_t *SourceBuffer, con
         return CFE_SB_INTERNAL_ERR;
     }
 
-    *DestSizeOut = (TypeInfo.Size.Bits + 7) / 8;
+    *DestSizeOut   = (TypeInfo.Size.Bits + 7) / 8;
     *DestBufferOut = NetworkBuffer;
 
     return CFE_SUCCESS;
