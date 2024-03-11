@@ -35,7 +35,7 @@
 #include "to_lab_eds_dictionary.h"
 #include "to_lab_eds_dispatcher.h"
 
-static const TO_LAB_Application_Component_Telecommand_DispatchTable_t TO_LAB_TC_DISPATCH_TABLE = {
+static const EdsDispatchTable_TO_LAB_Application_CFE_SB_Telecommand_t TO_LAB_TC_DISPATCH_TABLE = {
     .CMD     = {.AddPacketCmd_indication     = TO_LAB_AddPacketCmd,
             .NoopCmd_indication          = TO_LAB_NoopCmd,
             .EnableOutputCmd_indication  = TO_LAB_EnableOutputCmd,
@@ -57,8 +57,7 @@ void TO_LAB_TaskPipe(const CFE_SB_Buffer_t *SbBufPtr)
     CFE_MSG_Size_t    MsgSize;
     CFE_MSG_FcnCode_t MsgFc;
 
-    status = TO_LAB_Application_Component_Telecommand_Dispatch(CFE_SB_Telecommand_indication_Command_ID, SbBufPtr,
-                                                               &TO_LAB_TC_DISPATCH_TABLE);
+    status = EdsDispatch_TO_LAB_Application_Telecommand(SbBufPtr, &TO_LAB_TC_DISPATCH_TABLE);
 
     if (status != CFE_SUCCESS)
     {
