@@ -1,5 +1,9 @@
 # Changelog
 
+## Development Build: equuleus-rc1+dev48
+- apply name changes to EDS dispatcher
+- See <https://github.com/nasa/to_lab/pull/194>
+
 ## Development Build: equuleus-rc1+dev44
 - Add an event for ResetCountersCmd
 - Add version information to NOOP event
