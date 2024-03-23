@@ -103,7 +103,7 @@ CFE_Status_t TO_LAB_init(void)
     uint16        i;
     char          ToTlmPipeName[16];
     uint16        ToTlmPipeDepth;
-    void *        TblPtr;
+    void         *TblPtr;
     TO_LAB_Sub_t *SubEntry;
     char          VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
 
@@ -120,97 +120,112 @@ CFE_Status_t TO_LAB_init(void)
     if (status != CFE_SUCCESS)
     {
         CFE_ES_WriteToSysLog("TO_LAB: Error registering for Event Services, RC = 0x%08X\n", (unsigned int)status);
-        return status;
     }
 
-    /*
-    ** Initialize housekeeping packet (clear user data area)...
-    */
-    CFE_MSG_Init(CFE_MSG_PTR(TO_LAB_Global.HkTlm.TelemetryHeader), CFE_SB_ValueToMsgId(TO_LAB_HK_TLM_MID),
-                 sizeof(TO_LAB_Global.HkTlm));
-
-    status =
-        CFE_TBL_Register(&TO_LAB_Global.SubsTblHandle, "TO_LAB_Subs", sizeof(TO_LAB_Subs_t), CFE_TBL_OPT_DEFAULT, NULL);
-
-    if (status != CFE_SUCCESS)
-    {
-        CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't register table status %i",
-                          __LINE__, (int)status);
-        return status;
-    }
-
-    status = CFE_TBL_Load(TO_LAB_Global.SubsTblHandle, CFE_TBL_SRC_FILE, "/cf/to_lab_sub.tbl");
-
-    if (status != CFE_SUCCESS)
-    {
-        CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't load table status %i", __LINE__,
-                          (int)status);
-        return status;
-    }
-
-    status = CFE_TBL_GetAddress((void **)&TblPtr, TO_LAB_Global.SubsTblHandle);
-
-    if (status != CFE_SUCCESS && status != CFE_TBL_INFO_UPDATED)
-    {
-        CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't get table addr status %i",
-                          __LINE__, (int)status);
-        return status;
-    }
-
-    TO_LAB_Global.SubsTblPtr = TblPtr; /* Save returned address */
-
-    /* Subscribe to my commands */
-    status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, PipeDepth, PipeName);
     if (status == CFE_SUCCESS)
     {
-        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_CMD_MID), TO_LAB_Global.Cmd_pipe);
-        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
-    }
-    else
-        CFE_EVS_SendEvent(TO_LAB_CR_PIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't create cmd pipe status %i",
-                          __LINE__, (int)status);
+        /*
+        ** Initialize housekeeping packet (clear user data area)...
+        */
+        CFE_MSG_Init(CFE_MSG_PTR(TO_LAB_Global.HkTlm.TelemetryHeader), CFE_SB_ValueToMsgId(TO_LAB_HK_TLM_MID),
+                     sizeof(TO_LAB_Global.HkTlm));
 
-    /* Create TO TLM pipe */
-    status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
-    if (status != CFE_SUCCESS)
-    {
-        CFE_EVS_SendEvent(TO_LAB_TLMPIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't create Tlm pipe status %i",
-                          __LINE__, (int)status);
-    }
+        status = CFE_TBL_Register(&TO_LAB_Global.SubsTblHandle, "TO_LAB_Subs", sizeof(TO_LAB_Subs_t),
+                                  CFE_TBL_OPT_DEFAULT, NULL);
 
-    /* Subscriptions for TLM pipe*/
-    SubEntry = TO_LAB_Global.SubsTblPtr->Subs;
-    for (i = 0; i < TO_LAB_MAX_SUBSCRIPTIONS; i++)
-    {
-        if (!CFE_SB_IsValidMsgId(SubEntry->Stream))
-        {
-            /* Only process until invalid MsgId is found*/
-            break;
-        }
-
-        status = CFE_SB_SubscribeEx(SubEntry->Stream, TO_LAB_Global.Tlm_pipe, SubEntry->Flags, SubEntry->BufLimit);
         if (status != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID, CFE_EVS_EventType_ERROR,
-                              "L%d TO Can't subscribe to stream 0x%x status %i", __LINE__,
-                              (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream), (int)status);
+            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't register table status %i",
+                              __LINE__, (int)status);
+        }
+    }
+
+    if (status == CFE_SUCCESS)
+    {
+        status = CFE_TBL_Load(TO_LAB_Global.SubsTblHandle, CFE_TBL_SRC_FILE, "/cf/to_lab_sub.tbl");
+
+        if (status != CFE_SUCCESS)
+        {
+            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't load table status %i",
+                              __LINE__, (int)status);
+        }
+    }
+
+    if (status == CFE_SUCCESS)
+    {
+        status = CFE_TBL_GetAddress((void **)&TblPtr, TO_LAB_Global.SubsTblHandle);
+
+        if (status != CFE_SUCCESS && status != CFE_TBL_INFO_UPDATED)
+        {
+            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't get table addr status %i",
+                              __LINE__, (int)status);
+        }
+    }
+
+    if (status == CFE_SUCCESS || status == CFE_TBL_INFO_UPDATED)
+    {
+        TO_LAB_Global.SubsTblPtr = TblPtr; /* Save returned address */
+
+        /* Subscribe to my commands */
+        status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, PipeDepth, PipeName);
+        if (status != CFE_SUCCESS)
+        {
+            CFE_EVS_SendEvent(TO_LAB_CR_PIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't create cmd pipe status %i",
+                              __LINE__, (int)status);
+        }
+    }
+
+    if (status == CFE_SUCCESS)
+    {
+
+        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_CMD_MID), TO_LAB_Global.Cmd_pipe);
+        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
+
+        /* Create TO TLM pipe */
+        status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
+        if (status != CFE_SUCCESS)
+        {
+            CFE_EVS_SendEvent(TO_LAB_TLMPIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't create Tlm pipe status %i",
+                              __LINE__, (int)status);
+        }
+    }
+
+    if (status == CFE_SUCCESS)
+    {
+        /* Subscriptions for TLM pipe*/
+        SubEntry = TO_LAB_Global.SubsTblPtr->Subs;
+        for (i = 0; i < TO_LAB_MAX_SUBSCRIPTIONS; i++)
+        {
+            if (!CFE_SB_IsValidMsgId(SubEntry->Stream))
+            {
+                /* Only process until invalid MsgId is found*/
+                break;
+            }
+
+            status = CFE_SB_SubscribeEx(SubEntry->Stream, TO_LAB_Global.Tlm_pipe, SubEntry->Flags, SubEntry->BufLimit);
+            if (status != CFE_SUCCESS)
+            {
+                CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID, CFE_EVS_EventType_ERROR,
+                                  "L%d TO Can't subscribe to stream 0x%x status %i", __LINE__,
+                                  (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream), (int)status);
+            }
+
+            ++SubEntry;
         }
 
-        ++SubEntry;
+        CFE_Config_GetVersionString(VersionString, TO_LAB_CFG_MAX_VERSION_STR_LEN, "TO Lab", TO_LAB_VERSION,
+                                    TO_LAB_BUILD_CODENAME, TO_LAB_LAST_OFFICIAL);
+
+        CFE_EVS_SendEvent(TO_LAB_INIT_INF_EID, CFE_EVS_EventType_INFORMATION,
+                          "TO Lab Initialized.%s, Awaiting enable command.", VersionString);
     }
 
     /*
-    ** Install the delete handler
-    */
+     ** Install the delete handler
+     */
     OS_TaskInstallDeleteHandler(&TO_LAB_delete_callback);
 
-    CFE_Config_GetVersionString(VersionString, TO_LAB_CFG_MAX_VERSION_STR_LEN, "TO Lab",
-                          TO_LAB_VERSION, TO_LAB_BUILD_CODENAME, TO_LAB_LAST_OFFICIAL);
-
-    CFE_EVS_SendEvent(TO_LAB_INIT_INF_EID, CFE_EVS_EventType_INFORMATION,
-                      "TO Lab Initialized.%s, Awaiting enable command.", VersionString);
-
-    return CFE_SUCCESS;
+    return status;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -266,7 +281,7 @@ void TO_LAB_forward_telemetry(void)
     int32            OsStatus;
     CFE_Status_t     CfeStatus;
     CFE_SB_Buffer_t *SBBufPtr;
-    const void *     NetBufPtr;
+    const void      *NetBufPtr;
     size_t           NetBufSize;
     uint32           PktCount = 0;
 
