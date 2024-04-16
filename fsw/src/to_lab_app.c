@@ -54,7 +54,10 @@ void TO_LAB_AppMain(void)
 
     if (status != CFE_SUCCESS)
     {
-        return;
+        /*
+        ** Set request to terminate main loop...
+        */
+        RunStatus = CFE_ES_RunStatus_APP_ERROR;
     }
 
     /*
@@ -106,6 +109,9 @@ CFE_Status_t TO_LAB_init(void)
     void *        TblPtr;
     TO_LAB_Sub_t *SubEntry;
     char          VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
+
+    /* Zero out the global data structure */
+    memset(&TO_LAB_Global, 0, sizeof(TO_LAB_Global));
 
     TO_LAB_Global.downlink_on = false;
     PipeDepth                 = TO_LAB_CMD_PIPE_DEPTH;
