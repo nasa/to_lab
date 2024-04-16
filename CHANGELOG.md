@@ -1,5 +1,9 @@
 # Changelog
 
+## Development Build: equuleus-rc1+dev52
+- Zero-out global data during init + set RunStatus to APP_ERROR if init fails
+- See <https://github.com/nasa/to_lab/pull/188>
+
 ## Development Build: equuleus-rc1+dev48
 - apply name changes to EDS dispatcher
 - See <https://github.com/nasa/to_lab/pull/194>
