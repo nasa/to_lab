@@ -1,5 +1,9 @@
 # Changelog
 
+## Development Build: equuleus-rc1+dev56
+- Add CFE_EVS_SHORT_EVENT_MSG_MID to to_lab_sub.c
+- See <https://github.com/nasa/to_lab/pull/198>
+
 ## Development Build: equuleus-rc1+dev52
 - Zero-out global data during init + set RunStatus to APP_ERROR if init fails
 - See <https://github.com/nasa/to_lab/pull/188>
