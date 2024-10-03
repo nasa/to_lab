@@ -76,6 +76,7 @@ void TO_LAB_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
                               "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x", __LINE__,
                               (unsigned int)FcnCode);
             ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
+            break;
     }
 }
 
