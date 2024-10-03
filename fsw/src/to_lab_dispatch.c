@@ -37,11 +37,11 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void TO_LAB_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
 {
-    CFE_MSG_FcnCode_t CommandCode = 0;
+    CFE_MSG_FcnCode_t FcnCode = 0;
 
-    CFE_MSG_GetFcnCode(&SBBufPtr->Msg, &CommandCode);
+    CFE_MSG_GetFcnCode(&SBBufPtr->Msg, &FcnCode);
 
-    switch (CommandCode)
+    switch (FcnCode)
     {
         case TO_LAB_NOOP_CC:
             TO_LAB_NoopCmd((const TO_LAB_NoopCmd_t *)SBBufPtr);
@@ -74,7 +74,7 @@ void TO_LAB_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
         default:
             CFE_EVS_SendEvent(TO_LAB_FNCODE_ERR_EID, CFE_EVS_EventType_ERROR,
                               "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x", __LINE__,
-                              (unsigned int)CommandCode);
+                              (unsigned int)FcnCode);
             ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
     }
 }
