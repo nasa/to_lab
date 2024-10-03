@@ -1,5 +1,10 @@
 # Changelog
 
+## Development Build: equuleus-rc1+dev62
+- Rename CommandCode variable to Fcncode
+- Light initialization logic refactor + remove multiple returns
+- See <https://github.com/nasa/to_lab/pull/171> and <https://github.com/nasa/to_lab/pull/180>
+
 ## Development Build: equuleus-rc1+dev56
 - Add CFE_EVS_SHORT_EVENT_MSG_MID to to_lab_sub.c
 - See <https://github.com/nasa/to_lab/pull/198>
