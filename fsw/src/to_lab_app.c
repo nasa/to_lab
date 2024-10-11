@@ -141,7 +141,7 @@ CFE_Status_t TO_LAB_init(void)
 
         if (status != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't register table status %i",
+            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO can't register table status %i",
                               __LINE__, (int)status);
         }
     }
@@ -152,7 +152,7 @@ CFE_Status_t TO_LAB_init(void)
 
         if (status != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't load table status %i",
+            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO can't load table status %i",
                               __LINE__, (int)status);
         }
     }
@@ -163,7 +163,7 @@ CFE_Status_t TO_LAB_init(void)
 
         if (status != CFE_SUCCESS && status != CFE_TBL_INFO_UPDATED)
         {
-            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't get table addr status %i",
+            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO can't get table addr status %i",
                               __LINE__, (int)status);
         }
     }
@@ -176,7 +176,7 @@ CFE_Status_t TO_LAB_init(void)
         status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, PipeDepth, PipeName);
         if (status != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(TO_LAB_CR_PIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't create cmd pipe status %i",
+            CFE_EVS_SendEvent(TO_LAB_CR_PIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO can't create cmd pipe status %i",
                               __LINE__, (int)status);
         }
     }
@@ -184,14 +184,31 @@ CFE_Status_t TO_LAB_init(void)
     if (status == CFE_SUCCESS)
     {
 
-        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_CMD_MID), TO_LAB_Global.Cmd_pipe);
-        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
+        status = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_CMD_MID), TO_LAB_Global.Cmd_pipe);
+        if (status != CFE_SUCCESS)
+        {
+            CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_CMD_ERR_EID, CFE_EVS_EventType_ERROR,
+                              "L%d TO can't subscribe to cmd mid status %i", __LINE__, (int)status);
+        }
+    }
 
+    if (status == CFE_SUCCESS)
+    {
+        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
+        if (status != CFE_SUCCESS)
+        {
+            CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_HK_ERR_EID, CFE_EVS_EventType_ERROR,
+                              "L%d TO can't subscribe to HK mid status %i", __LINE__, (int)status);
+        }
+    }
+
+    if (status == CFE_SUCCESS)
+    {
         /* Create TO TLM pipe */
         status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
         if (status != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(TO_LAB_TLMPIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't create Tlm pipe status %i",
+            CFE_EVS_SendEvent(TO_LAB_TLMPIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO can't create Tlm pipe status %i",
                               __LINE__, (int)status);
         }
     }
@@ -212,7 +229,7 @@ CFE_Status_t TO_LAB_init(void)
             if (status != CFE_SUCCESS)
             {
                 CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID, CFE_EVS_EventType_ERROR,
-                                  "L%d TO Can't subscribe to stream 0x%x status %i", __LINE__,
+                                  "L%d TO can't subscribe to stream 0x%x status %i", __LINE__,
                                   (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream), (int)status);
             }
 
