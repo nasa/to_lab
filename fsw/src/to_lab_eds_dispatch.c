@@ -18,10 +18,10 @@
 **      See the License for the specific language governing permissions and
 **      limitations under the License.
 **
-** File: to_lab_app.c
+** File: to_lab_eds_dispatch.c
 **
 ** Purpose:
-**  his file contains the source code for the TO lab application
+**  This file contains the source code for the TO lab application
 **
 ** Notes:
 **
@@ -37,12 +37,12 @@
 
 static const EdsDispatchTable_TO_LAB_Application_CFE_SB_Telecommand_t TO_LAB_TC_DISPATCH_TABLE = {
     .CMD     = {.AddPacketCmd_indication     = TO_LAB_AddPacketCmd,
-            .NoopCmd_indication          = TO_LAB_NoopCmd,
-            .EnableOutputCmd_indication  = TO_LAB_EnableOutputCmd,
-            .RemoveAllCmd_indication     = TO_LAB_RemoveAllCmd,
-            .RemovePacketCmd_indication  = TO_LAB_RemovePacketCmd,
-            .ResetCountersCmd_indication = TO_LAB_ResetCountersCmd,
-            .SendDataTypesCmd_indication = TO_LAB_SendDataTypesCmd},
+                .NoopCmd_indication          = TO_LAB_NoopCmd,
+                .EnableOutputCmd_indication  = TO_LAB_EnableOutputCmd,
+                .RemoveAllCmd_indication     = TO_LAB_RemoveAllCmd,
+                .RemovePacketCmd_indication  = TO_LAB_RemovePacketCmd,
+                .ResetCountersCmd_indication = TO_LAB_ResetCountersCmd,
+                .SendDataTypesCmd_indication = TO_LAB_SendDataTypesCmd},
     .SEND_HK = {.indication = TO_LAB_SendHkCmd}};
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -84,7 +84,6 @@ void TO_LAB_TaskPipe(const CFE_SB_Buffer_t *SbBufPtr)
             CFE_EVS_SendEvent(TO_LAB_FNCODE_ERR_EID, CFE_EVS_EventType_ERROR,
                               "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x", __LINE__,
                               (unsigned int)MsgFc);
-            ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
         }
     }
 } /* End of TO_LAB_TaskPipe() */
