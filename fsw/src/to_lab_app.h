@@ -54,7 +54,7 @@ typedef struct
     TO_LAB_HkTlm_t        HkTlm;
     TO_LAB_DataTypesTlm_t DataTypesTlm;
 
-    TO_LAB_Subs_t *  SubsTblPtr;
+    TO_LAB_Subs_t   *SubsTblPtr;
     CFE_TBL_Handle_t SubsTblHandle;
 
 } TO_LAB_GlobalData_t;
@@ -63,11 +63,11 @@ typedef struct
  * Function Prototypes
  ************************************************************************/
 
-void  TO_LAB_AppMain(void);
-void  TO_LAB_openTLM(void);
-int32 TO_LAB_init(void);
-void  TO_LAB_process_commands(void);
-void  TO_LAB_forward_telemetry(void);
+void         TO_LAB_AppMain(void);
+void         TO_LAB_openTLM(void);
+CFE_Status_t TO_LAB_init(void);
+void         TO_LAB_process_commands(void);
+void         TO_LAB_forward_telemetry(void);
 
 /******************************************************************************/
 

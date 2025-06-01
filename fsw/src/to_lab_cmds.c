@@ -63,15 +63,15 @@ CFE_Status_t TO_LAB_EnableOutputCmd(const TO_LAB_EnableOutputCmd_t *data)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 CFE_Status_t TO_LAB_NoopCmd(const TO_LAB_NoopCmd_t *data)
 {
-  char VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
+    char VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
 
-  CFE_Config_GetVersionString(VersionString, TO_LAB_CFG_MAX_VERSION_STR_LEN, "TO Lab",
-                        TO_LAB_VERSION, TO_LAB_BUILD_CODENAME, TO_LAB_LAST_OFFICIAL);
+    CFE_Config_GetVersionString(VersionString, TO_LAB_CFG_MAX_VERSION_STR_LEN, "TO Lab", TO_LAB_VERSION,
+                                TO_LAB_BUILD_CODENAME, TO_LAB_LAST_OFFICIAL);
 
-  CFE_EVS_SendEvent(TO_LAB_NOOP_INF_EID, CFE_EVS_EventType_INFORMATION, "TO: NOOP command. %s", VersionString);
+    CFE_EVS_SendEvent(TO_LAB_NOOP_INF_EID, CFE_EVS_EventType_INFORMATION, "TO: NOOP command. %s", VersionString);
 
-  ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
-  return CFE_SUCCESS;
+    ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
+    return CFE_SUCCESS;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
