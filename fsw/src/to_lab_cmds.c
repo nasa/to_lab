@@ -222,6 +222,8 @@ CFE_Status_t TO_LAB_RemoveAllCmd(const TO_LAB_RemoveAllCmd_t *data)
                                   "L%d TO Can't Unsubscribe to stream 0x%x status %i", __LINE__,
                                   (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream), (int)status);
         }
+
+        SubEntry++;
     }
 
     CFE_EVS_SendEvent(TO_LAB_REMOVEALLPKTS_INF_EID, CFE_EVS_EventType_INFORMATION,
