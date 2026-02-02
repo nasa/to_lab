@@ -45,8 +45,11 @@
  * This is the preferred approach where everything is defined by EDS.
  * ---------------------------------------
  */
-CFE_Status_t TO_LAB_EncodeOutputPayload(void *DestBufPtr, EdsLib_Id_t ParentIntfId, const CFE_SB_Buffer_t *SourceBuffer,
-                                        const EdsLib_SizeInfo_t *MaxSize, EdsLib_SizeInfo_t *ProcessedSize)
+CFE_Status_t TO_LAB_EncodeOutputPayload(void                    *DestBufPtr,
+                                        EdsLib_Id_t              ParentIntfId,
+                                        const CFE_SB_Buffer_t   *SourceBuffer,
+                                        const EdsLib_SizeInfo_t *MaxSize,
+                                        EdsLib_SizeInfo_t       *ProcessedSize)
 {
     int32        EdsStatus;
     CFE_Status_t ResultStatus;
@@ -68,7 +71,11 @@ CFE_Status_t TO_LAB_EncodeOutputPayload(void *DestBufPtr, EdsLib_Id_t ParentIntf
     }
     else
     {
-        EdsStatus = EdsLib_DataTypeDB_PackPartialObjectVarSize(EDS_DB, &EdsId, DestBufPtr, SourceBuffer, MaxSize,
+        EdsStatus = EdsLib_DataTypeDB_PackPartialObjectVarSize(EDS_DB,
+                                                               &EdsId,
+                                                               DestBufPtr,
+                                                               SourceBuffer,
+                                                               MaxSize,
                                                                ProcessedSize);
         if (EdsStatus != EDSLIB_SUCCESS)
         {
@@ -99,13 +106,15 @@ CFE_Status_t TO_LAB_EncodeOutputPayload(void *DestBufPtr, EdsLib_Id_t ParentIntf
  * (The header is still encoded with EDS)
  * ---------------------------------------
  */
-CFE_Status_t TO_LAB_PassthruOutputPayload(void *DestBufPtr, const CFE_SB_Buffer_t *SourceBuffer,
-                                          const EdsLib_SizeInfo_t *MaxSize, EdsLib_SizeInfo_t *ProcessedSize)
+CFE_Status_t TO_LAB_PassthruOutputPayload(void                    *DestBufPtr,
+                                          const CFE_SB_Buffer_t   *SourceBuffer,
+                                          const EdsLib_SizeInfo_t *MaxSize,
+                                          EdsLib_SizeInfo_t       *ProcessedSize)
 {
     int32        EdsStatus;
     CFE_Status_t ResultStatus;
     EdsLib_Id_t  EdsId;
-    uint8 *      Dest;
+    uint8       *Dest;
     const uint8 *Src;
     size_t       HeaderSize;
     size_t       TotalSize;
@@ -141,7 +150,7 @@ CFE_Status_t TO_LAB_PassthruOutputPayload(void *DestBufPtr, const CFE_SB_Buffer_
                 Src  = (const uint8 *)&SourceBuffer->Msg;
 
                 Dest += HeaderSize;
-                Src += ProcessedSize->Bytes;
+                Src  += ProcessedSize->Bytes;
 
                 memcpy(Dest, Src, MaxSize->Bytes - ProcessedSize->Bytes);
             }
@@ -176,8 +185,8 @@ CFE_Status_t TO_LAB_PassthruOutputPayload(void *DestBufPtr, const CFE_SB_Buffer_
  * according to the output policy.
  * ---------------------------------------
  */
-CFE_Status_t TO_LAB_EncodeOutputMessage(const CFE_SB_Buffer_t *SourceBuffer, const void **DestBufferOut,
-                                        size_t *DestSizeOut)
+CFE_Status_t
+TO_LAB_EncodeOutputMessage(const CFE_SB_Buffer_t *SourceBuffer, const void **DestBufferOut, size_t *DestSizeOut)
 {
     CFE_MissionLib_TopicInfo_t            TopicInfo;
     CFE_SB_SoftwareBus_PubSub_Interface_t PubSubParams;

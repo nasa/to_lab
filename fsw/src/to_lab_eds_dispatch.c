@@ -76,23 +76,31 @@ void TO_LAB_TaskPipe(const CFE_SB_Buffer_t *SbBufPtr)
 
         if (status == CFE_STATUS_UNKNOWN_MSG_ID)
         {
-            CFE_EVS_SendEvent(TO_LAB_MID_ERR_EID, CFE_EVS_EventType_ERROR,
-                              "L%d TO: Invalid Msg ID Rcvd 0x%x status=0x%08x", __LINE__,
-                              (unsigned int)CFE_SB_MsgIdToValue(MsgId), (unsigned int)status);
+            CFE_EVS_SendEvent(TO_LAB_MID_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
+                              "L%d TO: Invalid Msg ID Rcvd 0x%x status=0x%08x",
+                              __LINE__,
+                              (unsigned int)CFE_SB_MsgIdToValue(MsgId),
+                              (unsigned int)status);
         }
         else if (status == CFE_STATUS_WRONG_MSG_LENGTH)
         {
             CFE_MSG_GetSize(&SbBufPtr->Msg, &MsgSize);
             CFE_MSG_GetFcnCode(&SbBufPtr->Msg, &MsgFc);
-            CFE_EVS_SendEvent(TO_LAB_MID_ERR_EID, CFE_EVS_EventType_ERROR,
+            CFE_EVS_SendEvent(TO_LAB_MID_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
                               "Invalid length for command: ID = 0x%X, CC = %d, length = %u",
-                              (unsigned int)CFE_SB_MsgIdToValue(MsgId), (int)MsgFc, (unsigned int)MsgSize);
+                              (unsigned int)CFE_SB_MsgIdToValue(MsgId),
+                              (int)MsgFc,
+                              (unsigned int)MsgSize);
         }
         else
         {
             CFE_MSG_GetFcnCode(&SbBufPtr->Msg, &MsgFc);
-            CFE_EVS_SendEvent(TO_LAB_FNCODE_ERR_EID, CFE_EVS_EventType_ERROR,
-                              "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x", __LINE__,
+            CFE_EVS_SendEvent(TO_LAB_FNCODE_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
+                              "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x",
+                              __LINE__,
                               (unsigned int)MsgFc);
             ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
         }

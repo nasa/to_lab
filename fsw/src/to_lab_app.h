@@ -55,7 +55,7 @@ typedef struct
     TO_LAB_HkTlm_t        HkTlm;
     TO_LAB_DataTypesTlm_t DataTypesTlm;
 
-    TO_LAB_Subs_t *  SubsTblPtr;
+    TO_LAB_Subs_t   *SubsTblPtr;
     CFE_TBL_Handle_t SubsTblHandle;
 
 } TO_LAB_GlobalData_t;

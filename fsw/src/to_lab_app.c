@@ -106,7 +106,7 @@ CFE_Status_t TO_LAB_init(void)
     uint16        i;
     char          ToTlmPipeName[16];
     uint16        ToTlmPipeDepth;
-    void *        TblPtr;
+    void         *TblPtr;
     TO_LAB_Sub_t *SubEntry;
     char          VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
 
@@ -134,16 +134,23 @@ CFE_Status_t TO_LAB_init(void)
         /*
         ** Initialize housekeeping packet (clear user data area)...
         */
-        CFE_MSG_Init(CFE_MSG_PTR(TO_LAB_Global.HkTlm.TelemetryHeader), CFE_SB_ValueToMsgId(TO_LAB_HK_TLM_MID),
+        CFE_MSG_Init(CFE_MSG_PTR(TO_LAB_Global.HkTlm.TelemetryHeader),
+                     CFE_SB_ValueToMsgId(TO_LAB_HK_TLM_MID),
                      sizeof(TO_LAB_Global.HkTlm));
 
-        status = CFE_TBL_Register(&TO_LAB_Global.SubsTblHandle, "Subscriptions", sizeof(TO_LAB_Subs_t),
-                                  CFE_TBL_OPT_DEFAULT, NULL);
+        status = CFE_TBL_Register(&TO_LAB_Global.SubsTblHandle,
+                                  "Subscriptions",
+                                  sizeof(TO_LAB_Subs_t),
+                                  CFE_TBL_OPT_DEFAULT,
+                                  NULL);
 
         if (status != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't register table status %i",
-                              __LINE__, (int)status);
+            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
+                              "L%d TO Can't register table status %i",
+                              __LINE__,
+                              (int)status);
         }
     }
 
@@ -153,8 +160,11 @@ CFE_Status_t TO_LAB_init(void)
 
         if (status != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't load table status %i",
-                              __LINE__, (int)status);
+            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
+                              "L%d TO Can't load table status %i",
+                              __LINE__,
+                              (int)status);
         }
     }
 
@@ -164,8 +174,11 @@ CFE_Status_t TO_LAB_init(void)
 
         if (status != CFE_SUCCESS && status != CFE_TBL_INFO_UPDATED)
         {
-            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't get table addr status %i",
-                              __LINE__, (int)status);
+            CFE_EVS_SendEvent(TO_LAB_TBL_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
+                              "L%d TO Can't get table addr status %i",
+                              __LINE__,
+                              (int)status);
         }
     }
 
@@ -177,14 +190,16 @@ CFE_Status_t TO_LAB_init(void)
         status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, PipeDepth, PipeName);
         if (status != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(TO_LAB_CR_PIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't create cmd pipe status %i",
-                              __LINE__, (int)status);
+            CFE_EVS_SendEvent(TO_LAB_CR_PIPE_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
+                              "L%d TO Can't create cmd pipe status %i",
+                              __LINE__,
+                              (int)status);
         }
     }
 
     if (status == CFE_SUCCESS)
     {
-
         CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_CMD_MID), TO_LAB_Global.Cmd_pipe);
         CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
 
@@ -192,8 +207,11 @@ CFE_Status_t TO_LAB_init(void)
         status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
         if (status != CFE_SUCCESS)
         {
-            CFE_EVS_SendEvent(TO_LAB_TLMPIPE_ERR_EID, CFE_EVS_EventType_ERROR, "L%d TO Can't create Tlm pipe status %i",
-                              __LINE__, (int)status);
+            CFE_EVS_SendEvent(TO_LAB_TLMPIPE_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
+                              "L%d TO Can't create Tlm pipe status %i",
+                              __LINE__,
+                              (int)status);
         }
     }
 
@@ -212,19 +230,28 @@ CFE_Status_t TO_LAB_init(void)
             status = CFE_SB_SubscribeEx(SubEntry->Stream, TO_LAB_Global.Tlm_pipe, SubEntry->Flags, SubEntry->BufLimit);
             if (status != CFE_SUCCESS)
             {
-                CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID, CFE_EVS_EventType_ERROR,
-                                  "L%d TO Can't subscribe to stream 0x%x status %i", __LINE__,
-                                  (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream), (int)status);
+                CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID,
+                                  CFE_EVS_EventType_ERROR,
+                                  "L%d TO Can't subscribe to stream 0x%x status %i",
+                                  __LINE__,
+                                  (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream),
+                                  (int)status);
             }
 
             ++SubEntry;
         }
 
-        CFE_Config_GetVersionString(VersionString, TO_LAB_CFG_MAX_VERSION_STR_LEN, "TO Lab", TO_LAB_VERSION,
-                                    TO_LAB_BUILD_CODENAME, TO_LAB_LAST_OFFICIAL);
+        CFE_Config_GetVersionString(VersionString,
+                                    TO_LAB_CFG_MAX_VERSION_STR_LEN,
+                                    "TO Lab",
+                                    TO_LAB_VERSION,
+                                    TO_LAB_BUILD_CODENAME,
+                                    TO_LAB_LAST_OFFICIAL);
 
-        CFE_EVS_SendEvent(TO_LAB_INIT_INF_EID, CFE_EVS_EventType_INFORMATION,
-                          "TO Lab Initialized.%s, Awaiting enable command.", VersionString);
+        CFE_EVS_SendEvent(TO_LAB_INIT_INF_EID,
+                          CFE_EVS_EventType_INFORMATION,
+                          "TO Lab Initialized.%s, Awaiting enable command.",
+                          VersionString);
     }
 
     /*
@@ -270,8 +297,11 @@ void TO_LAB_openTLM(void)
     status = OS_SocketOpen(&TO_LAB_Global.TLMsockid, OS_SocketDomain_INET, OS_SocketType_DATAGRAM);
     if (status != OS_SUCCESS)
     {
-        CFE_EVS_SendEvent(TO_LAB_TLMOUTSOCKET_ERR_EID, CFE_EVS_EventType_ERROR, "L%d, TO TLM socket error: %d",
-                          __LINE__, (int)status);
+        CFE_EVS_SendEvent(TO_LAB_TLMOUTSOCKET_ERR_EID,
+                          CFE_EVS_EventType_ERROR,
+                          "L%d, TO TLM socket error: %d",
+                          __LINE__,
+                          (int)status);
     }
 
     /*---------------- Add static arp entries ----------------*/
@@ -288,10 +318,10 @@ void TO_LAB_forward_telemetry(void)
     int32            OsStatus;
     CFE_Status_t     CfeStatus;
     CFE_SB_Buffer_t *SBBufPtr;
-    const void *     NetBufPtr;
+    const void      *NetBufPtr;
     size_t           NetBufSize;
     uint32           PktCount = 0;
-    uint16           PortNum = TO_LAB_MISSION_TLM_PORT + CFE_PSP_GetProcessorId() - 1;
+    uint16           PortNum  = TO_LAB_MISSION_TLM_PORT + CFE_PSP_GetProcessorId() - 1;
 
     OS_SocketAddrInit(&d_addr, OS_SocketDomain_INET);
     OS_SocketAddrSetPort(&d_addr, PortNum);
@@ -314,7 +344,9 @@ void TO_LAB_forward_telemetry(void)
 
                 if (CfeStatus != CFE_SUCCESS)
                 {
-                    CFE_EVS_SendEvent(TO_LAB_ENCODE_ERR_EID, CFE_EVS_EventType_ERROR, "Error packing output: %d\n",
+                    CFE_EVS_SendEvent(TO_LAB_ENCODE_ERR_EID,
+                                      CFE_EVS_EventType_ERROR,
+                                      "Error packing output: %d\n",
                                       (int)CfeStatus);
                 }
                 else
@@ -327,8 +359,11 @@ void TO_LAB_forward_telemetry(void)
 
             if (OsStatus < 0)
             {
-                CFE_EVS_SendEvent(TO_LAB_TLMOUTSTOP_ERR_EID, CFE_EVS_EventType_ERROR,
-                                  "L%d TO sendto error %d. Tlm output suppressed\n", __LINE__, (int)OsStatus);
+                CFE_EVS_SendEvent(TO_LAB_TLMOUTSTOP_ERR_EID,
+                                  CFE_EVS_EventType_ERROR,
+                                  "L%d TO sendto error %d. Tlm output suppressed\n",
+                                  __LINE__,
+                                  (int)OsStatus);
                 TO_LAB_Global.suppress_sendto = true;
             }
         }
