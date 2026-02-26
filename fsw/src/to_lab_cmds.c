@@ -233,6 +233,7 @@ CFE_Status_t TO_LAB_RemoveAllCmd(const TO_LAB_RemoveAllCmd_t *data)
     int32         status;
     int           i;
     TO_LAB_Sub_t *SubEntry;
+    uint32        UnsubscribeCount = 0;
 
     for (i = 0; i < TO_LAB_MISSION_MAX_SUBSCRIPTIONS; i++)
     {
@@ -250,13 +251,18 @@ CFE_Status_t TO_LAB_RemoveAllCmd(const TO_LAB_RemoveAllCmd_t *data)
                                   (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream),
                                   (int)status);
             }
+            else
+            {
+                ++UnsubscribeCount;
+            }
         }
     }
 
     CFE_EVS_SendEvent(TO_LAB_REMOVEALLPKTS_INF_EID,
                       CFE_EVS_EventType_INFORMATION,
-                      "L%d TO Unsubscribed to all Commands and Telemetry",
-                      __LINE__);
+                      "L%d TO Unsubscribed to all (%u) Commands and Telemetry",
+                      __LINE__,
+                      UnsubscribeCount);
 
     ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
