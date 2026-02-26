@@ -234,20 +234,22 @@ CFE_Status_t TO_LAB_RemoveAllCmd(const TO_LAB_RemoveAllCmd_t *data)
     int           i;
     TO_LAB_Sub_t *SubEntry;
 
-    SubEntry = TO_LAB_Global.SubsTblPtr->Subs;
     for (i = 0; i < TO_LAB_MISSION_MAX_SUBSCRIPTIONS; i++)
     {
+        SubEntry = &TO_LAB_Global.SubsTblPtr->Subs[i];
         if (CFE_SB_IsValidMsgId(SubEntry->Stream))
         {
             status = CFE_SB_Unsubscribe(SubEntry->Stream, TO_LAB_Global.Tlm_pipe);
 
             if (status != CFE_SUCCESS)
+            {
                 CFE_EVS_SendEvent(TO_LAB_REMOVEALLPTKS_ERR_EID,
                                   CFE_EVS_EventType_ERROR,
                                   "L%d TO Can't Unsubscribe to stream 0x%x status %i",
                                   __LINE__,
                                   (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream),
                                   (int)status);
+            }
         }
     }
 
