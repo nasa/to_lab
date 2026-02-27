@@ -102,13 +102,13 @@ void TO_LAB_delete_callback(void)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 CFE_Status_t TO_LAB_init(void)
 {
-    CFE_Status_t  status;
-    char          PipeName[16];
-    uint16        PipeDepth;
-    char          ToTlmPipeName[16];
-    uint16        ToTlmPipeDepth;
-    void         *TblPtr;
-    char          VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
+    CFE_Status_t status;
+    char         PipeName[16];
+    uint16       PipeDepth;
+    char         ToTlmPipeName[16];
+    uint16       ToTlmPipeDepth;
+    void        *TblPtr;
+    char         VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
 
     /* Zero out the global data structure */
     memset(&TO_LAB_Global, 0, sizeof(TO_LAB_Global));
@@ -351,7 +351,6 @@ void TO_LAB_forward_telemetry(void)
     } while (CfeStatus == CFE_SUCCESS && PktCount < TO_LAB_PLATFORM_MAX_TLM_PKTS);
 }
 
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
 /* TO_LAB_ValidateSubTable() -- Validate subscription table input  */
@@ -361,21 +360,21 @@ CFE_Status_t TO_LAB_ValidateSubTable(void *TblPtr)
 {
     TO_LAB_Subs_t *SubsTblPtr;
     TO_LAB_Sub_t  *SubEntry;
-    CFE_Status_t  ValidationStatus = CFE_SUCCESS; /* default to success unless error is found */
-    uint16        TableIndex;
+    CFE_Status_t   ValidationStatus = CFE_SUCCESS; /* default to success unless error is found */
+    uint16         TableIndex;
 
     if (TblPtr == NULL)
     {
         CFE_EVS_SendEvent(TO_LAB_TBL_PTR_NULL_ERR_EID,
-                            CFE_EVS_EventType_ERROR,
-                            "L%d TO Lab Table Validation Error: null table pointer input",
-                            __LINE__);
+                          CFE_EVS_EventType_ERROR,
+                          "L%d TO Lab Table Validation Error: null table pointer input",
+                          __LINE__);
         ValidationStatus = CFE_STATUS_VALIDATION_FAILURE;
     }
     else
     {
         /* Loop through table entries and validate each entry */
-        SubsTblPtr = (TO_LAB_Subs_t *) TblPtr;
+        SubsTblPtr = (TO_LAB_Subs_t *)TblPtr;
         for (TableIndex = 0; TableIndex < TO_LAB_MISSION_MAX_SUBSCRIPTIONS; TableIndex++)
         {
             SubEntry = &SubsTblPtr->Subs[TableIndex];
@@ -387,12 +386,12 @@ CFE_Status_t TO_LAB_ValidateSubTable(void *TblPtr)
             else if (SubEntry->BufLimit > TO_LAB_PLATFORM_TLM_PIPE_DEPTH)
             {
                 CFE_EVS_SendEvent(TO_LAB_TBL_BUF_LIMIT_ERR_EID,
-                                    CFE_EVS_EventType_ERROR,
-                                    "L%d TO Lab Table Validation Error: entry %u buf limit %u above max %u",
-                                    __LINE__,
-                                    TableIndex,
-                                    SubEntry->BufLimit,
-                                    TO_LAB_PLATFORM_TLM_PIPE_DEPTH);
+                                  CFE_EVS_EventType_ERROR,
+                                  "L%d TO Lab Table Validation Error: entry %u buf limit %u above max %u",
+                                  __LINE__,
+                                  TableIndex,
+                                  SubEntry->BufLimit,
+                                  TO_LAB_PLATFORM_TLM_PIPE_DEPTH);
                 ValidationStatus = CFE_STATUS_VALIDATION_FAILURE;
             }
         }
@@ -446,7 +445,6 @@ uint16 TO_LAB_UnsubscribeFromTlmPipe(void)
     return UnsubscribeCount;
 }
 
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
 /* TO_LAB_UpdateSubscriptionsFromTable() -- Update Subscriptions   */
@@ -460,7 +458,7 @@ uint16 TO_LAB_UpdateSubscriptionsFromTable(void)
     TO_LAB_Sub_t *SubEntry;
 
     /* Clear previous subscriptions */
-    (void) TO_LAB_UnsubscribeFromTlmPipe();
+    (void)TO_LAB_UnsubscribeFromTlmPipe();
 
     /* Loop through table entries and attempt to subscribe to each packet */
     for (TableIndex = 0; TableIndex < TO_LAB_MISSION_MAX_SUBSCRIPTIONS; TableIndex++)
@@ -472,15 +470,18 @@ uint16 TO_LAB_UpdateSubscriptionsFromTable(void)
             break;
         }
 
-        SubscribeResult = CFE_SB_SubscribeEx(SubEntry->Stream, TO_LAB_Global.Tlm_pipe, SubEntry->Flags, SubEntry->BufLimit);
+        SubscribeResult = CFE_SB_SubscribeEx(SubEntry->Stream,
+                                             TO_LAB_Global.Tlm_pipe,
+                                             SubEntry->Flags,
+                                             SubEntry->BufLimit);
         if (SubscribeResult != CFE_SUCCESS)
         {
-            (void) CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID,
-                                     CFE_EVS_EventType_ERROR,
-                                     "L%d TO Can't subscribe to stream 0x%x status %i",
-                                     __LINE__,
-                                     (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream),
-                                     (int)SubscribeResult);
+            (void)CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID,
+                                    CFE_EVS_EventType_ERROR,
+                                    "L%d TO Can't subscribe to stream 0x%x status %i",
+                                    __LINE__,
+                                    (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream),
+                                    (int)SubscribeResult);
         }
         else
         {
@@ -492,11 +493,11 @@ uint16 TO_LAB_UpdateSubscriptionsFromTable(void)
     /* Update interal count of active subscriptions */
     TO_LAB_Global.ActiveSubCount = NumberOfSubscriptions;
 
-    (void) CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_INF_EID,
-                             CFE_EVS_EventType_INFORMATION,
-                             "L%d TO Lab subscribed to %u messages from the table",
-                             __LINE__,
-                             NumberOfSubscriptions);
+    (void)CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_INF_EID,
+                            CFE_EVS_EventType_INFORMATION,
+                            "L%d TO Lab subscribed to %u messages from the table",
+                            __LINE__,
+                            NumberOfSubscriptions);
 
     return NumberOfSubscriptions;
 }

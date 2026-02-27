@@ -39,14 +39,14 @@
 ** Type Definitions
 *************************************************************************/
 
-#define TO_LAB_ERROR ((CFE_Status_t)0xc0010000)
-#define TO_LAB_ERROR_MAX_PACKET_LIMIT_REACHED ((CFE_Status_t) TO_LAB_ERROR | 0x0001)
-#define TO_LAB_ERROR_ADD_PACKET_BUF_LIMIT_ERR ((CFE_Status_t) TO_LAB_ERROR | 0x0002)
-#define TO_LAB_ERROR_ADD_PACKET_REDUNDANT_ERR ((CFE_Status_t) TO_LAB_ERROR | 0x0003) /* TODO */
-#define TO_LAB_ERROR_RM_PACKET_MISSING_ERR    ((CFE_Status_t) TO_LAB_ERROR | 0x0004) /* TODO */
+#define TO_LAB_ERROR                          ((CFE_Status_t)0xc0010000)
+#define TO_LAB_ERROR_MAX_PACKET_LIMIT_REACHED ((CFE_Status_t)TO_LAB_ERROR | 0x0001)
+#define TO_LAB_ERROR_ADD_PACKET_BUF_LIMIT_ERR ((CFE_Status_t)TO_LAB_ERROR | 0x0002)
+#define TO_LAB_ERROR_ADD_PACKET_REDUNDANT_ERR ((CFE_Status_t)TO_LAB_ERROR | 0x0003)
+#define TO_LAB_ERROR_RM_PACKET_MISSING_ERR    ((CFE_Status_t)TO_LAB_ERROR | 0x0004)
 
 /**
- * CI global data structure
+ * TO global data structure
  */
 typedef struct
 {
@@ -72,15 +72,15 @@ typedef struct
  * Function Prototypes
  ************************************************************************/
 
-void  TO_LAB_AppMain(void);
-void  TO_LAB_openTLM(void);
-int32 TO_LAB_init(void);
-void  TO_LAB_process_commands(void);
-void  TO_LAB_forward_telemetry(void);
+void         TO_LAB_AppMain(void);
+void         TO_LAB_openTLM(void);
+int32        TO_LAB_init(void);
+void         TO_LAB_process_commands(void);
+void         TO_LAB_forward_telemetry(void);
 CFE_Status_t TO_LAB_ValidateSubTable(void *TblPtr);
-uint16 TO_LAB_UnsubscribeFromTlmPipe(void);
-uint16 TO_LAB_UpdateSubscriptionsFromTable(void);
-void TO_LAB_ManageTables(void);
+uint16       TO_LAB_UnsubscribeFromTlmPipe(void);
+uint16       TO_LAB_UpdateSubscriptionsFromTable(void);
+void         TO_LAB_ManageTables(void);
 
 /******************************************************************************/
 
