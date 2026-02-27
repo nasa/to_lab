@@ -188,11 +188,11 @@ CFE_Status_t TO_LAB_AddPacketCmd(const TO_LAB_AddPacketCmd_t *data)
     if (pCmd->BufLimit >= TO_LAB_PLATFORM_TLM_PIPE_DEPTH)
     {
         CFE_EVS_SendEvent(TO_LAB_ADDPKT_BUFLIM_ERR_EID,
-                            CFE_EVS_EventType_ERROR,
-                            "L%d TO Lab Add Pkt Error: buf limit %u above max %u",
-                            __LINE__,
-                            pCmd->BufLimit,
-                            TO_LAB_PLATFORM_TLM_PIPE_DEPTH);
+                          CFE_EVS_EventType_ERROR,
+                          "L%d TO Lab Add Pkt Error: buf limit %u above max %u",
+                          __LINE__,
+                          pCmd->BufLimit,
+                          TO_LAB_PLATFORM_TLM_PIPE_DEPTH);
         ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
         return TO_LAB_ERROR_ADD_PACKET_BUF_LIMIT_ERR;
     }

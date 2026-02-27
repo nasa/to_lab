@@ -470,10 +470,8 @@ uint16 TO_LAB_UpdateSubscriptionsFromTable(void)
             break;
         }
 
-        SubscribeResult = CFE_SB_SubscribeEx(SubEntry->Stream,
-                                             TO_LAB_Global.Tlm_pipe,
-                                             SubEntry->Flags,
-                                             SubEntry->BufLimit);
+        SubscribeResult =
+            CFE_SB_SubscribeEx(SubEntry->Stream, TO_LAB_Global.Tlm_pipe, SubEntry->Flags, SubEntry->BufLimit);
         if (SubscribeResult != CFE_SUCCESS)
         {
             (void)CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID,
