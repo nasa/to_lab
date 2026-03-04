@@ -437,8 +437,7 @@ uint16 TO_LAB_UnsubscribeFromTlmPipe(void)
     }
 
     /*
-    ** at this point, there should be no active subscriptions on the tlm pipe from table configs
-    ** TBD: Note: there may still be subscriptions from the one-shot add packet commands
+    ** At this point, there should be no active subscriptions on the tlm pipe from table configs
     */
     TO_LAB_Global.ActiveSubCount = 0;
 
