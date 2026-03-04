@@ -39,11 +39,29 @@
 ** Type Definitions
 *************************************************************************/
 
-#define TO_LAB_ERROR                          ((CFE_Status_t)0xc0010000)
-#define TO_LAB_ERROR_MAX_PACKET_LIMIT_REACHED ((CFE_Status_t)TO_LAB_ERROR | 0x0001)
-#define TO_LAB_ERROR_ADD_PACKET_BUF_LIMIT_ERR ((CFE_Status_t)TO_LAB_ERROR | 0x0002)
-#define TO_LAB_ERROR_ADD_PACKET_REDUNDANT_ERR ((CFE_Status_t)TO_LAB_ERROR | 0x0003)
-#define TO_LAB_ERROR_RM_PACKET_MISSING_ERR    ((CFE_Status_t)TO_LAB_ERROR | 0x0004)
+/*
+** Status Codes are 32 bit values (format defined in cfe_error.h).
+** A snippet of the format is shown below, for reference:
+**
+**  3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+**  1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+** +---+---+-----+-----------------+-------------------------------+
+** |Sev| R | Srv | Mission Defined |               Code            |
+** +---+---+-----+-----------------+-------------------------------+
+**
+** As indicated above:
+** - bits 24 down to 16 indicate the "mission defined" group
+** - bits 15 down to 0 indicate the status codes within that group
+**
+** Instead of defining a TO_LAB-specific success value, CFE_SUCCESS is used.
+** If an "informational" severity code is needed, it can be added below.
+*/
+#define TO_LAB_STATUS_IDENTIFIER              ((CFE_Status_t)0x00010000)
+#define TO_LAB_ERROR_CODES                    ((CFE_Status_t)CFE_SEVERITY_ERROR | TO_LAB_STATUS_IDENTIFIER)
+#define TO_LAB_ERROR_MAX_PACKET_LIMIT_REACHED ((CFE_Status_t)TO_LAB_ERROR_CODES | 0x0001)
+#define TO_LAB_ERROR_ADD_PACKET_BUF_LIMIT_ERR ((CFE_Status_t)TO_LAB_ERROR_CODES | 0x0002)
+#define TO_LAB_ERROR_ADD_PACKET_REDUNDANT_ERR ((CFE_Status_t)TO_LAB_ERROR_CODES | 0x0003)
+#define TO_LAB_ERROR_RM_PACKET_MISSING_ERR    ((CFE_Status_t)TO_LAB_ERROR_CODES | 0x0004)
 
 /**
  * TO global data structure
