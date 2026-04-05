@@ -31,29 +31,37 @@
 */
 #include "to_lab_msgids.h"
 
+/*
+** Cross-app MsgId values (numeric) to avoid cross-app include path issues in table builds.
+** CMD base = 0x1800, TLM base = 0x0800, OR'd with topic ID from each app's topicids.h
+**
+** CI_LAB:     HK_TLM topic=0x84 → TLM MID=0x0884
+** SAMPLE_APP: HK_TLM topic=0x83 → TLM MID=0x0883
+*/
+#define NUMERIC_CI_LAB_HK_TLM_MID      0x0884
+#define NUMERIC_SAMPLE_APP_HK_TLM_MID  0x0883
+
 TO_LAB_Subs_t Subscriptions = {
     .Subs = {
-        /* CFS App Subscriptions (examples) */
-        /*
+        /* TO Lab own HK */
         {CFE_SB_MSGID_WRAP_VALUE(TO_LAB_HK_TLM_MID), {0, 0}, 4},
         {CFE_SB_MSGID_WRAP_VALUE(TO_LAB_DATA_TYPES_MID), {0, 0}, 4},
-        */
 
-        /* cFE Core subscriptions (examples) */
-        /*
+        /* CI Lab HK */
+        {CFE_SB_MSGID_WRAP_VALUE(NUMERIC_CI_LAB_HK_TLM_MID), {0, 0}, 4},
+
+        /* Sample App HK */
+        {CFE_SB_MSGID_WRAP_VALUE(NUMERIC_SAMPLE_APP_HK_TLM_MID), {0, 0}, 4},
+
+        /* cFE Core HK telemetry */
         {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_HK_TLM_MID), {0, 0}, 4},
         {CFE_SB_MSGID_WRAP_VALUE(CFE_EVS_HK_TLM_MID), {0, 0}, 4},
         {CFE_SB_MSGID_WRAP_VALUE(CFE_SB_HK_TLM_MID), {0, 0}, 4},
         {CFE_SB_MSGID_WRAP_VALUE(CFE_TBL_HK_TLM_MID), {0, 0}, 4},
         {CFE_SB_MSGID_WRAP_VALUE(CFE_TIME_HK_TLM_MID), {0, 0}, 4},
-        {CFE_SB_MSGID_WRAP_VALUE(CFE_TIME_DIAG_TLM_MID), {0, 0}, 4},
-        {CFE_SB_MSGID_WRAP_VALUE(CFE_SB_STATS_TLM_MID), {0, 0}, 4},
-        {CFE_SB_MSGID_WRAP_VALUE(CFE_TBL_REG_TLM_MID), {0, 0}, 4},
+
+        /* cFE Event messages - this is what you want for visibility */
         {CFE_SB_MSGID_WRAP_VALUE(CFE_EVS_LONG_EVENT_MSG_MID), {0, 0}, 32},
-        {CFE_SB_MSGID_WRAP_VALUE(CFE_EVS_SHORT_EVENT_MSG_MID), {0, 0}, 32},
-        {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_APP_TLM_MID), {0, 0}, 4},
-        {CFE_SB_MSGID_WRAP_VALUE(CFE_ES_MEMSTATS_TLM_MID), {0, 0}, 4},
-        */
 
         /* CFE_SB_MSGID_RESERVED entry to mark the end of valid MsgIds */
         {CFE_SB_MSGID_RESERVED, {0, 0}, 0}
