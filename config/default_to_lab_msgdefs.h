@@ -32,7 +32,6 @@ typedef struct
 {
     uint8 CommandCounter;
     uint8 CommandErrorCounter;
-    uint8 spareToAlign[2];
 } TO_LAB_HkTlm_Payload_t;
 
 typedef struct

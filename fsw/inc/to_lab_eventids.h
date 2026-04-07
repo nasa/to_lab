@@ -39,14 +39,21 @@
 #define TO_LAB_FNCODE_ERR_EID        9
 #define TO_LAB_ADDPKT_ERR_EID        10
 #define TO_LAB_REMOVEPKT_ERR_EID     11
-#define TO_LAB_REMOVEALLPTKS_ERR_EID 12
-#define TO_LAB_RESET_INF_EID         13
-#define TO_LAB_ADDPKT_INF_EID        15
-#define TO_LAB_REMOVEPKT_INF_EID     16
-#define TO_LAB_REMOVEALLPKTS_INF_EID 17
-#define TO_LAB_NOOP_INF_EID          18
-#define TO_LAB_TBL_ERR_EID           19
-#define TO_LAB_ENCODE_ERR_EID        20
+#define TO_LAB_RESET_INF_EID         12
+#define TO_LAB_ADDPKT_INF_EID        13
+#define TO_LAB_REMOVEPKT_INF_EID     14
+#define TO_LAB_REMOVEALLPKTS_INF_EID 15
+#define TO_LAB_NOOP_INF_EID          16
+#define TO_LAB_TBL_ERR_EID           17
+#define TO_LAB_ENCODE_ERR_EID        18
+#define TO_LAB_SUBSCRIBE_INF_EID     19
+#define TO_LAB_TBL_MANAGE_ERR_EID    20
+#define TO_LAB_UNSUBSCRIBE_ERR_EID   21
+#define TO_LAB_TBL_PTR_NULL_ERR_EID  22
+#define TO_LAB_TBL_BUF_LIMIT_ERR_EID 23
+#define TO_LAB_ADDPKT_BUFLIM_ERR_EID 24
+#define TO_LAB_ADDPKT_EXISTS_ERR_EID 25
+#define TO_LAB_RMPKT_MISSING_ERR_EID 26
 
 /******************************************************************************/
 

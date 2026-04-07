@@ -39,8 +39,32 @@
 ** Type Definitions
 *************************************************************************/
 
+/*
+** Status Codes are 32 bit values (format defined in cfe_error.h).
+** A snippet of the format is shown below, for reference:
+**
+**  3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+**  1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+** +---+---+-----+-----------------+-------------------------------+
+** |Sev| R | Srv | Mission Defined |               Code            |
+** +---+---+-----+-----------------+-------------------------------+
+**
+** As indicated above:
+** - bits 24 down to 16 indicate the "mission defined" group
+** - bits 15 down to 0 indicate the status codes within that group
+**
+** Instead of defining a TO_LAB-specific success value, CFE_SUCCESS is used.
+** If an "informational" severity code is needed, it can be added below.
+*/
+#define TO_LAB_STATUS_IDENTIFIER              ((CFE_Status_t)0x00010000)
+#define TO_LAB_ERROR_CODES                    ((CFE_Status_t)CFE_SEVERITY_ERROR | TO_LAB_STATUS_IDENTIFIER)
+#define TO_LAB_ERROR_MAX_PACKET_LIMIT_REACHED ((CFE_Status_t)TO_LAB_ERROR_CODES | 0x0001)
+#define TO_LAB_ERROR_ADD_PACKET_BUF_LIMIT_ERR ((CFE_Status_t)TO_LAB_ERROR_CODES | 0x0002)
+#define TO_LAB_ERROR_ADD_PACKET_REDUNDANT_ERR ((CFE_Status_t)TO_LAB_ERROR_CODES | 0x0003)
+#define TO_LAB_ERROR_RM_PACKET_MISSING_ERR    ((CFE_Status_t)TO_LAB_ERROR_CODES | 0x0004)
+
 /**
- * CI global data structure
+ * TO global data structure
  */
 typedef struct
 {
@@ -55,8 +79,10 @@ typedef struct
     TO_LAB_HkTlm_t        HkTlm;
     TO_LAB_DataTypesTlm_t DataTypesTlm;
 
-    TO_LAB_Subs_t *  SubsTblPtr;
+    TO_LAB_Subs_t   *SubsTblPtr;
     CFE_TBL_Handle_t SubsTblHandle;
+    CFE_SB_MsgId_t   ActiveSubs[TO_LAB_MISSION_MAX_SUBSCRIPTIONS];
+    uint16           ActiveSubCount;
 
 } TO_LAB_GlobalData_t;
 
@@ -64,11 +90,15 @@ typedef struct
  * Function Prototypes
  ************************************************************************/
 
-void  TO_LAB_AppMain(void);
-void  TO_LAB_openTLM(void);
-int32 TO_LAB_init(void);
-void  TO_LAB_process_commands(void);
-void  TO_LAB_forward_telemetry(void);
+void         TO_LAB_AppMain(void);
+void         TO_LAB_openTLM(void);
+int32        TO_LAB_init(void);
+void         TO_LAB_process_commands(void);
+void         TO_LAB_forward_telemetry(void);
+CFE_Status_t TO_LAB_ValidateSubTable(void *TblPtr);
+uint16       TO_LAB_UnsubscribeFromTlmPipe(void);
+uint16       TO_LAB_UpdateSubscriptionsFromTable(void);
+void         TO_LAB_ManageTables(void);
 
 /******************************************************************************/
 
