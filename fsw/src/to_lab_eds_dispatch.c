@@ -60,18 +60,18 @@ static const EdsDispatchTable_EdsComponent_TO_LAB_Application_CFE_SB_Telecommand
 /* TO_LAB_TaskPipe() -- Process command pipe message           */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void TO_LAB_TaskPipe(const CFE_SB_Buffer_t *SbBufPtr)
+void TO_LAB_TaskPipe(const CFE_SB_Buffer_t *SBBufPtr)
 {
     CFE_Status_t      status;
     CFE_SB_MsgId_t    MsgId;
     CFE_MSG_Size_t    MsgSize;
     CFE_MSG_FcnCode_t MsgFc;
 
-    status = EdsDispatch_EdsComponent_TO_LAB_Application_Telecommand(SbBufPtr, &TO_LAB_TC_DISPATCH_TABLE);
+    status = EdsDispatch_EdsComponent_TO_LAB_Application_Telecommand(SBBufPtr, &TO_LAB_TC_DISPATCH_TABLE);
 
     if (status != CFE_SUCCESS)
     {
-        CFE_MSG_GetMsgId(&SbBufPtr->Msg, &MsgId);
+        CFE_MSG_GetMsgId(&SBBufPtr->Msg, &MsgId);
         ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
 
         if (status == CFE_STATUS_UNKNOWN_MSG_ID)
@@ -82,15 +82,15 @@ void TO_LAB_TaskPipe(const CFE_SB_Buffer_t *SbBufPtr)
         }
         else if (status == CFE_STATUS_WRONG_MSG_LENGTH)
         {
-            CFE_MSG_GetSize(&SbBufPtr->Msg, &MsgSize);
-            CFE_MSG_GetFcnCode(&SbBufPtr->Msg, &MsgFc);
+            CFE_MSG_GetSize(&SBBufPtr->Msg, &MsgSize);
+            CFE_MSG_GetFcnCode(&SBBufPtr->Msg, &MsgFc);
             CFE_EVS_SendEvent(TO_LAB_MID_ERR_EID, CFE_EVS_EventType_ERROR,
                               "Invalid length for command: ID = 0x%X, CC = %d, length = %u",
                               (unsigned int)CFE_SB_MsgIdToValue(MsgId), (int)MsgFc, (unsigned int)MsgSize);
         }
         else
         {
-            CFE_MSG_GetFcnCode(&SbBufPtr->Msg, &MsgFc);
+            CFE_MSG_GetFcnCode(&SBBufPtr->Msg, &MsgFc);
             CFE_EVS_SendEvent(TO_LAB_FNCODE_ERR_EID, CFE_EVS_EventType_ERROR,
                               "L%d TO: Invalid Function Code Rcvd In Ground Command 0x%x", __LINE__,
                               (unsigned int)MsgFc);
