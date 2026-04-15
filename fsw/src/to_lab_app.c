@@ -488,7 +488,7 @@ uint16 TO_LAB_UpdateSubscriptionsFromTable(void)
             if (PrevEntryInvalid)
             {
                 CFE_ES_WriteToSysLog("Entry with stream ID 0x%04X was preceded by %d invalid entries",
-                                     SubEntry->Stream,
+                                     (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream),
                                      NumInvalidEntries);
 
                 PrevEntryInvalid  = false;
