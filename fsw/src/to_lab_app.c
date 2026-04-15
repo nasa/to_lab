@@ -451,10 +451,12 @@ uint16 TO_LAB_UnsubscribeFromTlmPipe(void)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 uint16 TO_LAB_UpdateSubscriptionsFromTable(void)
 {
-    uint16        NumberOfSubscriptions = 0;
     CFE_Status_t  SubscribeResult;
     uint16        TableIndex;
     TO_LAB_Sub_t *SubEntry;
+    uint16        NumberOfSubscriptions = 0;
+    bool          PrevEntryInvalid      = false;
+    uint8         NumInvalidEntries     = 0;
 
     /* Clear previous subscriptions */
     (void)TO_LAB_UnsubscribeFromTlmPipe();
@@ -463,27 +465,46 @@ uint16 TO_LAB_UpdateSubscriptionsFromTable(void)
     for (TableIndex = 0; TableIndex < TO_LAB_MISSION_MAX_SUBSCRIPTIONS; TableIndex++)
     {
         SubEntry = &TO_LAB_Global.SubsTblPtr->Subs[TableIndex];
-        if (!CFE_SB_IsValidMsgId(SubEntry->Stream))
+        if (CFE_SB_IsValidMsgId(SubEntry->Stream))
         {
-            /* An invalid MsgId indicates the end of the table */
-            break;
-        }
+            SubscribeResult =
+                CFE_SB_SubscribeEx(SubEntry->Stream, TO_LAB_Global.Tlm_pipe, SubEntry->Flags, SubEntry->BufLimit);
+            if (SubscribeResult != CFE_SUCCESS)
+            {
+                (void)CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID,
+                                        CFE_EVS_EventType_ERROR,
+                                        "L%d TO Can't subscribe to stream 0x%x status %i",
+                                        __LINE__,
+                                        (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream),
+                                        (int)SubscribeResult);
+            }
+            else
+            {
+                TO_LAB_Global.ActiveSubs[NumberOfSubscriptions] = SubEntry->Stream;
+                ++NumberOfSubscriptions;
+            }
 
-        SubscribeResult =
-            CFE_SB_SubscribeEx(SubEntry->Stream, TO_LAB_Global.Tlm_pipe, SubEntry->Flags, SubEntry->BufLimit);
-        if (SubscribeResult != CFE_SUCCESS)
-        {
-            (void)CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID,
-                                    CFE_EVS_EventType_ERROR,
-                                    "L%d TO Can't subscribe to stream 0x%x status %i",
-                                    __LINE__,
-                                    (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream),
-                                    (int)SubscribeResult);
+            /* A valid TO Subscriptions table entry followed an invalid entry */
+            if (PrevEntryInvalid)
+            {
+                CFE_ES_WriteToSysLog("Entry with stream ID 0x%04X was preceded by %d invalid entries",
+                                     SubEntry->Stream,
+                                     NumInvalidEntries);
+
+                PrevEntryInvalid  = false;
+                NumInvalidEntries = 0;
+            }
         }
         else
         {
-            TO_LAB_Global.ActiveSubs[NumberOfSubscriptions] = SubEntry->Stream;
-            ++NumberOfSubscriptions;
+            PrevEntryInvalid = true;
+            NumInvalidEntries++;
+
+            CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_DBG_EID,
+                              CFE_EVS_EventType_DEBUG,
+                              "TO was unable to subscribe to stream 0x%04X at entry %d",
+                              (unsigned int)CFE_SB_MsgIdToValue(SubEntry->Stream),
+                              TableIndex + 1);
         }
     }
 
