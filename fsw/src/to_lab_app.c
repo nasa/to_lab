@@ -59,6 +59,14 @@ void TO_LAB_AppMain(void)
         */
         RunStatus = CFE_ES_RunStatus_APP_ERROR;
     }
+    else
+    {
+        /* Defer subscribing until the system is operational will avoid
+         * possibly seeing MsgLimit errors due to the apps sending many
+         * events at start up */
+        CFE_ES_WaitForStartupSync(TO_LAB_STARTUP_SYNC_TIMEOUT);
+        TO_LAB_UpdateSubscriptionsFromTable();
+    }
 
     /*
     ** TO RunLoop
@@ -67,11 +75,11 @@ void TO_LAB_AppMain(void)
     {
         CFE_ES_PerfLogExit(TO_LAB_MAIN_TASK_PERF_ID);
 
-        OS_TaskDelay(TO_LAB_PLATFORM_TASK_MSEC);
+        /* NOTE: activity in this function is indicated by TO_LAB_SOCKET_SEND_PERF_ID,
+         * so it does not need to be included within TO_LAB_MAIN_TASK_PERF_ID. */
+        TO_LAB_forward_telemetry();
 
         CFE_ES_PerfLogEntry(TO_LAB_MAIN_TASK_PERF_ID);
-
-        TO_LAB_forward_telemetry();
 
         TO_LAB_process_commands();
 
@@ -217,8 +225,6 @@ CFE_Status_t TO_LAB_init(void)
 
     if (status == CFE_SUCCESS)
     {
-        TO_LAB_UpdateSubscriptionsFromTable();
-
         CFE_Config_GetVersionString(VersionString,
                                     TO_LAB_CFG_MAX_VERSION_STR_LEN,
                                     "TO Lab",
