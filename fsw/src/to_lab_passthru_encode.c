@@ -45,6 +45,11 @@ CFE_Status_t TO_LAB_EncodeOutputMessage(const CFE_SB_Buffer_t *SourceBuffer, con
 
     ResultStatus = CFE_MSG_GetSize(&SourceBuffer->Msg, &SourceBufferSize);
 
+    if (SourceBufferSize > CFE_MISSION_SB_MAX_SB_MSG_SIZE)
+    {
+        SourceBufferSize = CFE_MISSION_SB_MAX_SB_MSG_SIZE;
+    }
+
     *DestBufferOut = SourceBuffer;
     *DestSizeOut   = SourceBufferSize;
 
