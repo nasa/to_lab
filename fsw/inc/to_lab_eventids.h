@@ -54,6 +54,7 @@
 #define TO_LAB_ADDPKT_BUFLIM_ERR_EID 24
 #define TO_LAB_ADDPKT_EXISTS_ERR_EID 25
 #define TO_LAB_RMPKT_MISSING_ERR_EID 26
+#define TO_LAB_SUBSCRIBE_DBG_EID     27
 
 /******************************************************************************/
 

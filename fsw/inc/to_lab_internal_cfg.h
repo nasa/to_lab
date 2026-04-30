@@ -38,16 +38,17 @@
 /*****************************************************************************/
 
 /**
- * @brief Main loop task delay
- */
-#define TO_LAB_PLATFORM_TASK_MSEC         TO_LAB_PLATFORM_CFGVAL(TASK_MSEC)
-#define DEFAULT_TO_LAB_PLATFORM_TASK_MSEC (100) /* run at 10 Hz */
-
-/**
  * @brief Telemetry pipe timeout
+ *
+ * When there is no activity on the telemetry pipe for this
+ * time period, then the command pipe will be checked.  Smaller
+ * values will cause the command pipe to be checked more agressively
+ * but will increase CPU usage.
+ *
+ * Units are the same as CFE_SB_ReceiveBuffer (milliseconds)
  */
 #define TO_LAB_PLATFORM_TLM_PIPE_TIMEOUT         TO_LAB_PLATFORM_CFGVAL(TLM_PIPE_TIMEOUT)
-#define DEFAULT_TO_LAB_PLATFORM_TLM_PIPE_TIMEOUT CFE_SB_POLL
+#define DEFAULT_TO_LAB_PLATFORM_TLM_PIPE_TIMEOUT 50
 
 /**
  * @brief Maximum number of telemetry packets to send each wakeup
@@ -66,5 +67,16 @@
  */
 #define TO_LAB_PLATFORM_TLM_PIPE_DEPTH         TO_LAB_PLATFORM_CFGVAL(TLM_PIPE_DEPTH)
 #define DEFAULT_TO_LAB_PLATFORM_TLM_PIPE_DEPTH OS_QUEUE_MAX_DEPTH
+
+/**
+ * Startup Sync timeout
+ *
+ * This is the maximum amount of time to wait for the system to reach OPERATIONAL state
+ * before subscribing to all of the MsgIDs in the table.  Importantly this can defer
+ * the subscription until after all apps have sent their startup event, which reduces
+ * the likelihood of seeing a MsgLimit error.
+ */
+#define TO_LAB_STARTUP_SYNC_TIMEOUT                  TO_LAB_PLATFORM_CFGVAL(STARTUP_SYNC_TIMEOUT)
+#define DEFAULT_TO_LAB_PLATFORM_STARTUP_SYNC_TIMEOUT 10000
 
 #endif
