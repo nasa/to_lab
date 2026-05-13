@@ -24,7 +24,7 @@
 #define TO_LAB_VERSION_H
 
 /* Development Build Macro Definitions */
-#define TO_LAB_BUILD_NUMBER    0        /*!< Development Build: Number of commits since baseline */
+#define TO_LAB_BUILD_NUMBER    1        /*!< Development Build: Number of commits since baseline */
 #define TO_LAB_BUILD_BASELINE  "v7.0.1" /*!< Development Build: git tag that is the base for the current development */
 #define TO_LAB_BUILD_DEV_CYCLE "v7.0.1" /**< @brief Development: Release name for current development cycle */
 #define TO_LAB_BUILD_CODENAME  "Draco"  /**< @brief: Development: Code name for the current build */
@@ -48,7 +48,7 @@
  * Values 1-254 are reserved for mission use to denote patches/customizations as needed. NOTE: Reserving 0 and 0xFF for
  * cFS open-source development use (pending resolution of nasa/cFS#440)
  */
-#define TO_LAB_MISSION_REV 0x0
+#define TO_LAB_MISSION_REV 0xFF
 
 #define TO_LAB_STR_HELPER(x) #x /*!< @brief Helper function to concatenate strings from integer macros */
 #define TO_LAB_STR(x)        TO_LAB_STR_HELPER(x) /*!< @brief Helper function to concatenate strings from integer macros */
