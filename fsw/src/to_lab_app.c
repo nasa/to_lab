@@ -124,9 +124,9 @@ CFE_Status_t TO_LAB_init(void)
     TO_LAB_Global.AllowPassthru = true;
     TO_LAB_Global.downlink_on   = false;
     PipeDepth                   = TO_LAB_PLATFORM_CMD_PIPE_DEPTH;
-    strncpy(PipeName, "TO_LAB_CMD_PIPE", sizeof(PipeName)-1);
+    strncpy(PipeName, "TO_LAB_CMD_PIPE", sizeof(PipeName) - 1);
     ToTlmPipeDepth = TO_LAB_PLATFORM_TLM_PIPE_DEPTH;
-    strncpy(ToTlmPipeName, "TO_LAB_TLM_PIPE", sizeof(ToTlmPipeName)-1);
+    strncpy(ToTlmPipeName, "TO_LAB_TLM_PIPE", sizeof(ToTlmPipeName) - 1);
 
     /*
     ** Register with EVS
