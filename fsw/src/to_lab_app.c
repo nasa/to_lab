@@ -208,9 +208,32 @@ CFE_Status_t TO_LAB_init(void)
 
     if (status == CFE_SUCCESS)
     {
-        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_CMD_MID), TO_LAB_Global.Cmd_pipe);
-        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
+        status = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_CMD_MID), TO_LAB_Global.Cmd_pipe);
+        if (status != CFE_SUCCESS)
+        {
+            CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
+                              "L%d TO Can't subscribe to Cmd MID, status %i",
+                              __LINE__,
+                              (int)status);
+        }
+    }
 
+    if (status == CFE_SUCCESS)
+    {
+        status = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
+        if (status != CFE_SUCCESS)
+        {
+            CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
+                              "L%d TO Can't subscribe to HK MID, status %i",
+                              __LINE__,
+                              (int)status);
+        }
+    }
+
+    if (status == CFE_SUCCESS)
+    {
         /* Create TO TLM pipe */
         status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
         if (status != CFE_SUCCESS)
