@@ -124,12 +124,12 @@ CFE_Status_t TO_LAB_init(void)
     TO_LAB_Global.AllowPassthru = true;
     TO_LAB_Global.downlink_on   = false;
     PipeDepth                   = TO_LAB_PLATFORM_CMD_PIPE_DEPTH;
-    
+
     /* sizeof()-1 makes sure there's room for the null terminator when using strncpy */
     strncpy(PipeName, "TO_LAB_CMD_PIPE", sizeof(PipeName) - 1);
     /* Make sure a null terminator is added to the strncpy destination */
     PipeName[sizeof(PipeName) - 1] = '\0';
-    ToTlmPipeDepth = TO_LAB_PLATFORM_TLM_PIPE_DEPTH;
+    ToTlmPipeDepth                 = TO_LAB_PLATFORM_TLM_PIPE_DEPTH;
     strncpy(ToTlmPipeName, "TO_LAB_TLM_PIPE", sizeof(ToTlmPipeName) - 1);
     ToTlmPipeName[sizeof(ToTlmPipeName) - 1] = '\0';
 
