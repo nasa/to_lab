@@ -116,10 +116,6 @@ void TO_LAB_delete_callback(void)
 CFE_Status_t TO_LAB_init(void)
 {
     CFE_Status_t status;
-    char         PipeName[16];
-    uint16       PipeDepth;
-    char         ToTlmPipeName[16];
-    uint16       ToTlmPipeDepth;
     void        *TblPtr;
     char         VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
 
@@ -128,10 +124,6 @@ CFE_Status_t TO_LAB_init(void)
 
     TO_LAB_Global.AllowPassthru = true;
     TO_LAB_Global.downlink_on   = false;
-    PipeDepth                   = TO_LAB_PLATFORM_CMD_PIPE_DEPTH;
-    strcpy(PipeName, "TO_LAB_CMD_PIPE");
-    ToTlmPipeDepth = TO_LAB_PLATFORM_TLM_PIPE_DEPTH;
-    strcpy(ToTlmPipeName, "TO_LAB_TLM_PIPE");
 
     /*
     ** Register with EVS
@@ -200,7 +192,7 @@ CFE_Status_t TO_LAB_init(void)
         TO_LAB_Global.SubsTblPtr = TblPtr; /* Save returned address */
 
         /* Subscribe to my commands */
-        status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, PipeDepth, PipeName);
+        status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, TO_LAB_PLATFORM_CMD_PIPE_DEPTH, "TO_LAB_CMD_PIPE");
         if (status != CFE_SUCCESS)
         {
             CFE_EVS_SendEvent(TO_LAB_CR_PIPE_ERR_EID,
@@ -224,7 +216,7 @@ CFE_Status_t TO_LAB_init(void)
     if (status == CFE_SUCCESS)
     {
         /* Create TO TLM pipe */
-        status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
+        status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, TO_LAB_PLATFORM_TLM_PIPE_DEPTH, "TO_LAB_TLM_PIPE");
         if (status != CFE_SUCCESS)
         {
             CFE_EVS_SendEvent(TO_LAB_TLMPIPE_ERR_EID,
