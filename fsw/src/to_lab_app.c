@@ -111,10 +111,6 @@ void TO_LAB_delete_callback(void)
 CFE_Status_t TO_LAB_init(void)
 {
     CFE_Status_t status;
-    char         PipeName[16];
-    uint16       PipeDepth;
-    char         ToTlmPipeName[16];
-    uint16       ToTlmPipeDepth;
     void        *TblPtr;
     char         VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
 
@@ -123,15 +119,6 @@ CFE_Status_t TO_LAB_init(void)
 
     TO_LAB_Global.AllowPassthru = true;
     TO_LAB_Global.downlink_on   = false;
-    PipeDepth                   = TO_LAB_PLATFORM_CMD_PIPE_DEPTH;
-
-    /* sizeof()-1 makes sure there's room for the null terminator when using strncpy */
-    strncpy(PipeName, "TO_LAB_CMD_PIPE", sizeof(PipeName) - 1);
-    /* Make sure a null terminator is added to the strncpy destination */
-    PipeName[sizeof(PipeName) - 1] = '\0';
-    ToTlmPipeDepth                 = TO_LAB_PLATFORM_TLM_PIPE_DEPTH;
-    strncpy(ToTlmPipeName, "TO_LAB_TLM_PIPE", sizeof(ToTlmPipeName) - 1);
-    ToTlmPipeName[sizeof(ToTlmPipeName) - 1] = '\0';
 
     /*
     ** Register with EVS
@@ -200,7 +187,7 @@ CFE_Status_t TO_LAB_init(void)
         TO_LAB_Global.SubsTblPtr = TblPtr; /* Save returned address */
 
         /* Subscribe to my commands */
-        status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, PipeDepth, PipeName);
+        status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, TO_LAB_PLATFORM_CMD_PIPE_DEPTH, "TO_LAB_CMD_PIPE");
         if (status != CFE_SUCCESS)
         {
             CFE_EVS_SendEvent(TO_LAB_CR_PIPE_ERR_EID,
@@ -217,7 +204,7 @@ CFE_Status_t TO_LAB_init(void)
         CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
 
         /* Create TO TLM pipe */
-        status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
+        status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, TO_LAB_PLATFORM_TLM_PIPE_DEPTH, "TO_LAB_TLM_PIPE");
         if (status != CFE_SUCCESS)
         {
             CFE_EVS_SendEvent(TO_LAB_TLMPIPE_ERR_EID,
