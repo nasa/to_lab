@@ -38,6 +38,11 @@
 */
 TO_LAB_GlobalData_t TO_LAB_Global;
 
+/*
+** TO Local Function Prototypes
+*/
+CFE_Status_t TO_LAB_CmdSubscribe(CFE_SB_MsgId_Atom_t MsgIdValue);
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                   */
 /* TO_LAB_AppMain() -- Application entry point and main process loop */
@@ -208,9 +213,16 @@ CFE_Status_t TO_LAB_init(void)
 
     if (status == CFE_SUCCESS)
     {
-        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_CMD_MID), TO_LAB_Global.Cmd_pipe);
-        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
+        status = TO_LAB_CmdSubscribe(TO_LAB_CMD_MID);
+    }
 
+    if (status == CFE_SUCCESS)
+    {
+        status = TO_LAB_CmdSubscribe(TO_LAB_SEND_HK_MID);
+    }
+
+    if (status == CFE_SUCCESS)
+    {
         /* Create TO TLM pipe */
         status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
         if (status != CFE_SUCCESS)
@@ -242,6 +254,29 @@ CFE_Status_t TO_LAB_init(void)
      ** Install the delete handler
      */
     OS_TaskInstallDeleteHandler(&TO_LAB_delete_callback);
+
+    return status;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* TO_LAB_CmdSubscribe() -- Subscribes to command message          */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+CFE_Status_t TO_LAB_CmdSubscribe(CFE_SB_MsgId_Atom_t MsgIdValue)
+{
+    CFE_Status_t status;
+    status = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(MsgIdValue), TO_LAB_Global.Cmd_pipe);
+
+    if (status != CFE_SUCCESS)
+    {
+        (void)CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID,
+                                CFE_EVS_EventType_ERROR,
+                                "L%d TO Can't subscribe to stream 0x%x status %i",
+                                __LINE__,
+                                (unsigned int)MsgIdValue,
+                                (int)status);
+    }
 
     return status;
 }
