@@ -289,8 +289,9 @@ CFE_Status_t TO_LAB_RemovePacketCmd(const TO_LAB_RemovePacketCmd_t *data)
     }
     else
     {
-        /* clear the active subscription entry */
-        TO_LAB_Global.ActiveSubs[ActiveSubsIndex] = CFE_SB_ValueToMsgId(0);
+        /* Compact array: move the last active subscription into the freed slot */
+        TO_LAB_Global.ActiveSubs[ActiveSubsIndex] = TO_LAB_Global.ActiveSubs[TO_LAB_Global.ActiveSubCount - 1];
+        TO_LAB_Global.ActiveSubs[TO_LAB_Global.ActiveSubCount - 1] = CFE_SB_ValueToMsgId(0);
         --TO_LAB_Global.ActiveSubCount;
 
         CFE_EVS_SendEvent(TO_LAB_REMOVEPKT_INF_EID,
