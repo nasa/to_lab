@@ -38,6 +38,11 @@
 */
 TO_LAB_GlobalData_t TO_LAB_Global;
 
+/*
+** TO Local Function Prototypes
+*/
+CFE_Status_t TO_LAB_CmdSubscribe(CFE_SB_MsgId_Atom_t MsgIdValue);
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                   */
 /* TO_LAB_AppMain() -- Application entry point and main process loop */
@@ -111,10 +116,6 @@ void TO_LAB_delete_callback(void)
 CFE_Status_t TO_LAB_init(void)
 {
     CFE_Status_t status;
-    char         PipeName[16];
-    uint16       PipeDepth;
-    char         ToTlmPipeName[16];
-    uint16       ToTlmPipeDepth;
     void        *TblPtr;
     char         VersionString[TO_LAB_CFG_MAX_VERSION_STR_LEN];
 
@@ -123,10 +124,6 @@ CFE_Status_t TO_LAB_init(void)
 
     TO_LAB_Global.AllowPassthru = true;
     TO_LAB_Global.downlink_on   = false;
-    PipeDepth                   = TO_LAB_PLATFORM_CMD_PIPE_DEPTH;
-    strcpy(PipeName, "TO_LAB_CMD_PIPE");
-    ToTlmPipeDepth = TO_LAB_PLATFORM_TLM_PIPE_DEPTH;
-    strcpy(ToTlmPipeName, "TO_LAB_TLM_PIPE");
 
     /*
     ** Register with EVS
@@ -195,7 +192,7 @@ CFE_Status_t TO_LAB_init(void)
         TO_LAB_Global.SubsTblPtr = TblPtr; /* Save returned address */
 
         /* Subscribe to my commands */
-        status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, PipeDepth, PipeName);
+        status = CFE_SB_CreatePipe(&TO_LAB_Global.Cmd_pipe, TO_LAB_PLATFORM_CMD_PIPE_DEPTH, "TO_LAB_CMD_PIPE");
         if (status != CFE_SUCCESS)
         {
             CFE_EVS_SendEvent(TO_LAB_CR_PIPE_ERR_EID,
@@ -208,11 +205,18 @@ CFE_Status_t TO_LAB_init(void)
 
     if (status == CFE_SUCCESS)
     {
-        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_CMD_MID), TO_LAB_Global.Cmd_pipe);
-        CFE_SB_Subscribe(CFE_SB_ValueToMsgId(TO_LAB_SEND_HK_MID), TO_LAB_Global.Cmd_pipe);
+        status = TO_LAB_CmdSubscribe(TO_LAB_CMD_MID);
+    }
 
+    if (status == CFE_SUCCESS)
+    {
+        status = TO_LAB_CmdSubscribe(TO_LAB_SEND_HK_MID);
+    }
+
+    if (status == CFE_SUCCESS)
+    {
         /* Create TO TLM pipe */
-        status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, ToTlmPipeDepth, ToTlmPipeName);
+        status = CFE_SB_CreatePipe(&TO_LAB_Global.Tlm_pipe, TO_LAB_PLATFORM_TLM_PIPE_DEPTH, "TO_LAB_TLM_PIPE");
         if (status != CFE_SUCCESS)
         {
             CFE_EVS_SendEvent(TO_LAB_TLMPIPE_ERR_EID,
@@ -242,6 +246,29 @@ CFE_Status_t TO_LAB_init(void)
      ** Install the delete handler
      */
     OS_TaskInstallDeleteHandler(&TO_LAB_delete_callback);
+
+    return status;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* TO_LAB_CmdSubscribe() -- Subscribes to command message          */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+CFE_Status_t TO_LAB_CmdSubscribe(CFE_SB_MsgId_Atom_t MsgIdValue)
+{
+    CFE_Status_t status;
+    status = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(MsgIdValue), TO_LAB_Global.Cmd_pipe);
+
+    if (status != CFE_SUCCESS)
+    {
+        (void)CFE_EVS_SendEvent(TO_LAB_SUBSCRIBE_ERR_EID,
+                                CFE_EVS_EventType_ERROR,
+                                "L%d TO Can't subscribe to stream 0x%x status %i",
+                                __LINE__,
+                                (unsigned int)MsgIdValue,
+                                (int)status);
+    }
 
     return status;
 }

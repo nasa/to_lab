@@ -182,10 +182,8 @@ CFE_Status_t TO_LAB_AddPacketCmd(const TO_LAB_AddPacketCmd_t *data)
                           (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream),
                           TO_LAB_MISSION_MAX_SUBSCRIPTIONS);
         ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
-        return TO_LAB_ERROR_MAX_PACKET_LIMIT_REACHED;
     }
-
-    if (pCmd->BufLimit >= TO_LAB_PLATFORM_TLM_PIPE_DEPTH)
+    else if (pCmd->BufLimit >= TO_LAB_PLATFORM_TLM_PIPE_DEPTH)
     {
         CFE_EVS_SendEvent(TO_LAB_ADDPKT_BUFLIM_ERR_EID,
                           CFE_EVS_EventType_ERROR,
@@ -194,56 +192,58 @@ CFE_Status_t TO_LAB_AddPacketCmd(const TO_LAB_AddPacketCmd_t *data)
                           pCmd->BufLimit,
                           TO_LAB_PLATFORM_TLM_PIPE_DEPTH);
         ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
-        return TO_LAB_ERROR_ADD_PACKET_BUF_LIMIT_ERR;
-    }
-
-    /* Loop through active subscriptions to see if this subscription exists */
-    for (ActiveSubsIndex = 0; ActiveSubsIndex < TO_LAB_MISSION_MAX_SUBSCRIPTIONS; ActiveSubsIndex++)
-    {
-        if (CFE_SB_MsgId_Equal(pCmd->Stream, TO_LAB_Global.ActiveSubs[ActiveSubsIndex]))
-        {
-            break;
-        }
-    }
-    if (ActiveSubsIndex != TO_LAB_MISSION_MAX_SUBSCRIPTIONS)
-    {
-        /* report that the packet subscription already exists */
-        CFE_EVS_SendEvent(TO_LAB_ADDPKT_EXISTS_ERR_EID,
-                          CFE_EVS_EventType_ERROR,
-                          "L%d TO Lab Add Pkt Error: Stream 0x%x already exists",
-                          __LINE__,
-                          (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream));
-        ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
-        return TO_LAB_ERROR_ADD_PACKET_REDUNDANT_ERR;
-    }
-
-    status = CFE_SB_SubscribeEx(pCmd->Stream, TO_LAB_Global.Tlm_pipe, pCmd->Flags, pCmd->BufLimit);
-
-    if (status != CFE_SUCCESS)
-    {
-        CFE_EVS_SendEvent(TO_LAB_ADDPKT_ERR_EID,
-                          CFE_EVS_EventType_ERROR,
-                          "L%d TO Can't subscribe 0x%x status %i",
-                          __LINE__,
-                          (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream),
-                          (int)status);
     }
     else
     {
-        TO_LAB_Global.ActiveSubs[TO_LAB_Global.ActiveSubCount] = pCmd->Stream;
-        ++TO_LAB_Global.ActiveSubCount;
-        CFE_EVS_SendEvent(TO_LAB_ADDPKT_INF_EID,
-                          CFE_EVS_EventType_INFORMATION,
-                          "L%d TO AddPkt 0x%x, QoS %d.%d, limit %d",
-                          __LINE__,
-                          (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream),
-                          pCmd->Flags.Priority,
-                          pCmd->Flags.Reliability,
-                          pCmd->BufLimit);
-    }
+        /* Loop through active subscriptions to see if this subscription exists */
+        for (ActiveSubsIndex = 0; ActiveSubsIndex < TO_LAB_MISSION_MAX_SUBSCRIPTIONS; ActiveSubsIndex++)
+        {
+            if (CFE_SB_MsgId_Equal(pCmd->Stream, TO_LAB_Global.ActiveSubs[ActiveSubsIndex]))
+            {
+                break;
+            }
+        }
+        if (ActiveSubsIndex != TO_LAB_MISSION_MAX_SUBSCRIPTIONS)
+        {
+            /* report that the packet subscription already exists (not really an error, its a no-op) */
+            CFE_EVS_SendEvent(TO_LAB_ADDPKT_EXISTS_INF_EID,
+                              CFE_EVS_EventType_INFORMATION,
+                              "L%d TO_LAB Add Pkt Info: Stream 0x%x already exists",
+                              __LINE__,
+                              (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream));
+            ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
+        }
+        else
+        {
+            status = CFE_SB_SubscribeEx(pCmd->Stream, TO_LAB_Global.Tlm_pipe, pCmd->Flags, pCmd->BufLimit);
 
-    ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
-    return status;
+            if (status != CFE_SUCCESS)
+            {
+                CFE_EVS_SendEvent(TO_LAB_ADDPKT_ERR_EID,
+                                  CFE_EVS_EventType_ERROR,
+                                  "L%d TO_LAB Can't subscribe 0x%x status %i",
+                                  __LINE__,
+                                  (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream),
+                                  (int)status);
+                ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
+            }
+            else
+            {
+                TO_LAB_Global.ActiveSubs[TO_LAB_Global.ActiveSubCount] = pCmd->Stream;
+                ++TO_LAB_Global.ActiveSubCount;
+                CFE_EVS_SendEvent(TO_LAB_ADDPKT_INF_EID,
+                                  CFE_EVS_EventType_INFORMATION,
+                                  "L%d TO_LAB AddPkt 0x%x, QoS %d.%d, limit %d",
+                                  __LINE__,
+                                  (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream),
+                                  pCmd->Flags.Priority,
+                                  pCmd->Flags.Reliability,
+                                  pCmd->BufLimit);
+                ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
+            }
+        }
+    }
+    return CFE_SUCCESS;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -274,33 +274,34 @@ CFE_Status_t TO_LAB_RemovePacketCmd(const TO_LAB_RemovePacketCmd_t *data)
                           __LINE__,
                           (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream));
         ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
-        return TO_LAB_ERROR_RM_PACKET_MISSING_ERR;
-    }
-
-    status = CFE_SB_Unsubscribe(pCmd->Stream, TO_LAB_Global.Tlm_pipe);
-    if (status != CFE_SUCCESS)
-    {
-        CFE_EVS_SendEvent(TO_LAB_REMOVEPKT_ERR_EID,
-                          CFE_EVS_EventType_ERROR,
-                          "L%d TO Can't Unsubscribe to Stream 0x%x, status %i",
-                          __LINE__,
-                          (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream),
-                          (int)status);
     }
     else
     {
-        /* clear the active subscription entry */
-        TO_LAB_Global.ActiveSubs[ActiveSubsIndex] = CFE_SB_ValueToMsgId(0);
-        --TO_LAB_Global.ActiveSubCount;
+        status = CFE_SB_Unsubscribe(pCmd->Stream, TO_LAB_Global.Tlm_pipe);
+        if (status != CFE_SUCCESS)
+        {
+            CFE_EVS_SendEvent(TO_LAB_REMOVEPKT_ERR_EID,
+                              CFE_EVS_EventType_ERROR,
+                              "L%d TO Can't Unsubscribe to Stream 0x%x, status %i",
+                              __LINE__,
+                              (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream),
+                              (int)status);
+            ++TO_LAB_Global.HkTlm.Payload.CommandErrorCounter;
+        }
+        else
+        {
+            /* clear the active subscription entry */
+            TO_LAB_Global.ActiveSubs[ActiveSubsIndex] = CFE_SB_ValueToMsgId(0);
+            --TO_LAB_Global.ActiveSubCount;
 
-        CFE_EVS_SendEvent(TO_LAB_REMOVEPKT_INF_EID,
-                          CFE_EVS_EventType_INFORMATION,
-                          "L%d TO RemovePkt 0x%x",
-                          __LINE__,
-                          (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream));
+            CFE_EVS_SendEvent(TO_LAB_REMOVEPKT_INF_EID,
+                              CFE_EVS_EventType_INFORMATION,
+                              "L%d TO RemovePkt 0x%x",
+                              __LINE__,
+                              (unsigned int)CFE_SB_MsgIdToValue(pCmd->Stream));
+            ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
+        }
     }
-
-    ++TO_LAB_Global.HkTlm.Payload.CommandCounter;
     return CFE_SUCCESS;
 }
 
