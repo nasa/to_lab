@@ -337,7 +337,6 @@ void TO_LAB_forward_telemetry(void)
     OS_SocketAddrInit(&d_addr, OS_SocketDomain_INET);
     OS_SocketAddrSetPort(&d_addr, PortNum);
     OS_SocketAddrFromString(&d_addr, TO_LAB_Global.tlm_dest_IP);
-    OsStatus = 0;
 
     do
     {
